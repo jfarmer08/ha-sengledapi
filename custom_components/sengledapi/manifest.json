@@ -1,0 +1,9 @@
+{
+  "domain": "sengledapi",
+  "name": "Sengled Bulb Api Integration",
+  "documentation": "",
+  "dependencies": [],
+  "codeowners": ["@jfarmer08"],
+	"requirements": [],
+	"icons": []
+}

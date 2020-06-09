@@ -1,0 +1,5 @@
+{
+	"name": "Sengled Bulb Integration",
+	"domains": ["light"],
+	"iot_class": "cloud_poll"
+}
