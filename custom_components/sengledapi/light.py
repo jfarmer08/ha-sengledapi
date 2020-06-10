@@ -17,7 +17,7 @@ from homeassistant.components.light import (
     ATTR_COLOR_TEMP,
     PLATFORM_SCHEMA,
     SUPPORT_BRIGHTNESS,
-    Light,
+    LightEntity,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ ATTRIBUTION = "Data provided by Sengled"
 
 async def async_setup_platform(hass, config, add_entities, discovery_info=None):
     """Set up the Sengled Light platform."""
-    _LOGGER.debug("""Creating new WyzeApi light component""")
+    _LOGGER.debug("""Creating new Sengled light component""")
     # Add devices
     add_entities(
         SengledBulb(light)
@@ -34,7 +34,7 @@ async def async_setup_platform(hass, config, add_entities, discovery_info=None):
     )
 
 
-class SengledBulb(Light):
+class SengledBulb(LightEntity):
     """Representation of a Sengled Bulb."""
 
     def __init__(self, light):

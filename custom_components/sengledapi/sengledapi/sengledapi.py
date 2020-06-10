@@ -8,9 +8,6 @@ from .sengled_request import SengledRequest
 from .sengled_bulb import SengledBulb
 from .sengledapi_exceptions import SengledApiAccessToken
 
-accesstoken = "JSESSIONID=cb3d6c2f-d626-48b2-9379-6d80445f5a80"
-
-
 class SengledApi:
     def __init__(self, user_name, password):
         _LOGGER.debug("Sengled Api initializing.")
@@ -19,7 +16,7 @@ class SengledApi:
         self._device_id = "740447d2-eb6e-11e9-81b4-2a2ae2dbcce4"
         self._in_error_state = False
         self._invalid_access_tokens = []
-
+        self._access_token = None
         # Create device array
         self._all_devices = []
 
@@ -28,7 +25,7 @@ class SengledApi:
         self._access_token = await self.async_login(
             self._user_name, self._password, self._device_id
         )
-        _LOGGER.debug(self._access_token)
+        _LOGGER.debug("sengledapi async_init" + self._access_token)
 
     async def async_login(self, username, password, device_id):
         _LOGGER.debug("Sengled Api log in async.")
@@ -44,7 +41,8 @@ class SengledApi:
 
         try:
             access_token = "JSESSIONID=" + data["jsessionid"]
-            accesstoken = access_token
+            _LOGGER.debug("Sengled Api accessToken " + str(access_token))
+            self._access_token = access_token
             return access_token
         except:
             return None
@@ -57,7 +55,7 @@ class SengledApi:
     def valid_access_token(self):
         if self._access_token == None:
             return "none"
-        return _access_token
+        return self._access_token
 
     async def async_get_devices(self):
         _LOGGER.debug("Sengled Api getting devices.")
@@ -66,7 +64,7 @@ class SengledApi:
                 "https://element.cloud.sengled.com/zigbee/device/getDeviceDetails.json"
             )
             payload = {}
-            data = await self.async_do_request(url, payload, accesstoken)
+            data = await self.async_do_request(url, payload, self._access_token)
             self._all_devices = data["deviceInfos"]
         return self._all_devices
 
@@ -86,7 +84,7 @@ class SengledApi:
                             ("on" if device["attributes"]["onoff"] == 1 else "off"),
                             device["attributes"]["productCode"],
                             device["attributes"]["brightness"],
-                            accesstoken,
+                            self._access_token,
                         )
                     )
 
@@ -99,7 +97,7 @@ class SengledApi:
         except:
             return SengledRequest(url, payload).get_response(accesstoken)
 
-    ###################################Login Request onley###############################
+    ###################################Login Request only###############################
     async def async_do_login_request(self, url, payload):
         _LOGGER.debug("async_do_login_request - Sengled Api doing request.")
         try:
