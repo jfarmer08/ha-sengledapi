@@ -9,7 +9,8 @@ This is a custom component to allow control of Sengled Bulbs in Homeassistant us
 ### Potential Downsides
 
 * This is an unofficial implementation of the api and therefore may be disabled or broken at anytime by Sengled
-* I only have light bulbs. An update may break them without my knowledge. **Please use the betas as they become avaliable**
+* I only have Element Classic A19 Kit (Light bulbs + Hub) to test https://us.sengled.com/products/element-classic-kit
+* An update may break them without my knowledge. **Please use the betas as they become avaliable**
 
 ## Installation (HACS) - Highly Recommended
 
