@@ -36,7 +36,7 @@ class SengledBulb:
             url = "https://us-elements.cloud.sengled.com/zigbee/device/deviceSetBrightness.json"
 
             if self._brightness:
-                brightness = self.translate(self._brightness, 1, 255, 1, 100)
+                brightness = self._brightness
 
             payload = {"deviceUuid": self._device_mac, "brightness": brightness}
 
@@ -90,13 +90,3 @@ class SengledBulb:
                         False if int(items["attributes"]["isOnline"]) == 0 else True
                     )
 
-    def translate(self, value, leftMin, leftMax, rightMin, rightMax):
-        # Figure out how 'wide' each range is
-        leftSpan = leftMax - leftMin
-        rightSpan = rightMax - rightMin
-
-        # Convert the left range into a 0-1 range (float)
-        valueScaled = float(value - leftMin) / float(leftSpan)
-
-        # Convert the 0-1 range into a value in the right range.
-        return rightMin + (valueScaled * rightSpan)
