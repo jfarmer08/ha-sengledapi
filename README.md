@@ -55,3 +55,5 @@ sengledapi:
 2. Restart HA
 3. Verify you're still having the issue
 4. File an issue in this Github Repository
+
+<a href="https://www.buymeacoffee.com/jfarmer08" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-red.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
