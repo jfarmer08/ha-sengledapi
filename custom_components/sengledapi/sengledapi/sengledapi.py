@@ -76,7 +76,7 @@ class SengledApi:
             _LOGGER.debug(device)
             if "lampInfos" in device:
                 for device in device["lampInfos"]:
-                    if(device["attributes"]["productCode"] == "E11-G23"):
+                    if(device["attributes"]["productCode"] == "E11-G13"):
                         bulbs.append(
                             SengledBulb(
                                 self,
@@ -112,7 +112,6 @@ class SengledApi:
                                 self._access_token,
                             )
                         )
-
 
         return bulbs
 
