@@ -76,17 +76,43 @@ class SengledApi:
             _LOGGER.debug(device)
             if "lampInfos" in device:
                 for device in device["lampInfos"]:
-                    bulbs.append(
-                        SengledBulb(
-                            self,
-                            device["deviceUuid"],
-                            device["attributes"]["name"],
-                            ("on" if device["attributes"]["onoff"] == 1 else "off"),
-                            device["attributes"]["productCode"],
-                            device["attributes"]["brightness"],
-                            self._access_token,
+                    if(device["attributes"]["productCode"] == "E11-G23"):
+                        bulbs.append(
+                            SengledBulb(
+                                self,
+                                device["deviceUuid"],
+                                device["attributes"]["name"],
+                                ("on" if device["attributes"]["onoff"] == 1 else "off"),
+                                device["attributes"]["productCode"],
+                                device["attributes"]["brightness"],
+                                self._access_token,
+                            )
                         )
-                    )
+                    if(device["attributes"]["productCode"] == "E11-G23"):
+                        bulbs.append(
+                            SengledBulb(
+                                self,
+                                device["deviceUuid"],
+                                device["attributes"]["name"],
+                                ("on" if device["attributes"]["onoff"] == 1 else "off"),
+                                device["attributes"]["productCode"],
+                                device["attributes"]["brightness"],
+                                self._access_token,
+                            )
+                        )
+                    if(device["attributes"]["productCode"] == "E1A-AC2"):#Light Currently only one i have
+                        bulbs.append(
+                            SengledBulb(
+                                self,
+                                device["deviceUuid"],
+                                device["attributes"]["name"],
+                                ("on" if device["attributes"]["onoff"] == 1 else "off"),
+                                device["attributes"]["productCode"],
+                                device["attributes"]["brightness"],
+                                self._access_token,
+                            )
+                        )
+
 
         return bulbs
 
