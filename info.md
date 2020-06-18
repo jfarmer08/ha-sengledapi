@@ -29,8 +29,8 @@ This is a custom component to allow control of Sengled Bulbs in Homeassistant us
 
 ## **SengledApi** NOTE: Configuration Changed Please update.
 Country Code example:
-	us
-	au
+* country: us
+* country: au
 
 ## Configuration
 
