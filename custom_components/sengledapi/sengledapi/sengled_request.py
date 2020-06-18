@@ -31,6 +31,9 @@ class SengledRequest:
             "Cookie": access_token,
             "Connection": "keep-alive",
         }
+        _LOGGER.debug(
+            "SengledApi: get_response Sengled Request getting response NON-async."
+        )
         r = requests.post(self._url, headers=self._header, data=self._payload)
         data = r.json()
         return data
@@ -44,7 +47,6 @@ class SengledRequest:
         }
         _LOGGER.debug(
             "SengledApi: async_get_response Sengled Request getting response async."
-            + str(access_token)
         )
         async with aiohttp.ClientSession() as session:
             sslcontext = ssl.create_default_context(cafile=certifi.where())

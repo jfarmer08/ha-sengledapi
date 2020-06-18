@@ -13,12 +13,15 @@ import homeassistant.helpers.config_validation as cv
 _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "sengledapi"
+CONF_COUNTRY = "country"
+
 CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema(
             {
                 vol.Required(CONF_USERNAME): cv.string,
                 vol.Required(CONF_PASSWORD): cv.string,
+                vol.Required(CONF_COUNTRY): cv.string,
             }
         )
     },
@@ -33,7 +36,7 @@ async def async_setup(hass, config):
 -------------------------------------------------------------------
 Sengled Bulb Home Assistant Integration
 
-Version: v0.1-beta.4
+Version: v0.1-beta.5
 This is a custom integration
 If you have any issues with this you need to open an issue here:
 
@@ -42,7 +45,9 @@ If you have any issues with this you need to open an issue here:
     _LOGGER.debug("""Creating new SengledApi component""")
 
     sengledapi_account = SengledApi(
-        config[DOMAIN].get(CONF_USERNAME), config[DOMAIN].get(CONF_PASSWORD)
+        config[DOMAIN].get(CONF_USERNAME),
+        config[DOMAIN].get(CONF_PASSWORD),
+        config[DOMAIN].get(CONF_COUNTRY),
     )
     await sengledapi_account.async_init()
 

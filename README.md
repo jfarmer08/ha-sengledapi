@@ -27,6 +27,12 @@ This is a custom component to allow control of Sengled Bulbs in Homeassistant us
    * On Hassbian the final location will be `/home/homeassistant/.homeassistant/custom_components/sengledapi`
 3. Restart HA
 
+## **SengledApi** NOTE: Configuration Changed Please update.
+Country Code example:
+	us
+	au
+
+
 ## Configuration
 
 Add the following to your configuration file.
@@ -35,6 +41,7 @@ Add the following to your configuration file.
 sengledapi:
   username: <email for sengled>
   password: <password for sengled>
+  country: <country>
 ```
 
 ## Usage

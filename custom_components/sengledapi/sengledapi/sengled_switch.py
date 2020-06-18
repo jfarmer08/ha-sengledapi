@@ -2,22 +2,13 @@ import asyncio
 import logging
 
 _LOGGER = logging.getLogger(__name__)
-_LOGGER.debug("SengledApi: sengled_bulb class")
 
 
-class SengledBulb:
+class SengledSwitch:
     def __init__(
-        self,
-        api,
-        device_mac,
-        friendly_name,
-        state,
-        device_model,
-        brightness,
-        accesstoken,
-        country,
+        self, api, device_mac, friendly_name, state, device_model, accesstoken, country,
     ):
-        _LOGGER.debug("SengledApi: Light " + friendly_name + " initializing.")
+        _LOGGER.debug("SengledApi: Switch " + friendly_name + " initializing.")
 
         self._api = api
         self._device_mac = device_mac
@@ -26,32 +17,19 @@ class SengledBulb:
         self._avaliable = True
         self._just_changed_state = False
         self._device_model = device_model
-        self._brightness = int(brightness)
         self._accesstoken = accesstoken
         self._country = country
 
     async def async_turn_on(self):
-        _LOGGER.debug("Light " + self._friendly_name + " turning on.")
-        if self._brightness is not None:
-            url = (
-                "https://"
-                + self._country
-                + "-elements.cloud.sengled.com/zigbee/device/deviceSetBrightness.json"
-            )
+        _LOGGER.debug("Switch " + self._friendly_name + " turning on.")
 
-            if self._brightness:
-                brightness = self._brightness
+        url = (
+            "https://"
+            + self._country
+            + "-elements.cloud.sengled.com/zigbee/device/deviceSetOnOff.json"
+        )
 
-            payload = {"deviceUuid": self._device_mac, "brightness": brightness}
-
-        else:
-            url = (
-                "https://"
-                + self._country
-                + "-elements.cloud.sengled.com/zigbee/device/deviceSetOnOff.json"
-            )
-
-            payload = {"deviceUuid": self._device_mac, "onoff": "1"}
+        payload = {"deviceUuid": self._device_mac, "onoff": "1"}
 
         loop = asyncio.get_running_loop()
         loop.create_task(self._api.async_do_request(url, payload, self._accesstoken))
@@ -60,7 +38,8 @@ class SengledBulb:
         self._just_changed_state = True
 
     async def async_turn_off(self):
-        _LOGGER.debug("Light " + self._friendly_name + " turning off.")
+        _LOGGER.debug("Switch " + self._friendly_name + " turning off.")
+
         url = (
             "https://"
             + self._country
@@ -79,7 +58,7 @@ class SengledBulb:
         return self._state
 
     async def async_update(self):
-        _LOGGER.debug("Light " + self._friendly_name + " updating.")
+        _LOGGER.debug("Switch " + self._friendly_name + " updating.")
         if self._just_changed_state:
             self._just_changed_state = False
         else:
@@ -89,11 +68,10 @@ class SengledBulb:
 
             payload = {}
             data = await self._api.async_do_request(url, payload, self._accesstoken)
-            _LOGGER.debug("Light " + self._friendly_name + " updating.")
+            _LOGGER.debug("Switch " + self._friendly_name + " updating.")
             for item in data["deviceInfos"]:
                 for items in item["lampInfos"]:
                     self._friendly_name = items["attributes"]["name"]
-                    self._brightness = int(items["attributes"]["brightness"])
                     self._state = (
                         True if int(items["attributes"]["onoff"]) == 1 else False
                     )

@@ -6,10 +6,12 @@ _LOGGER = logging.getLogger(__name__)
 
 from .sengled_request import SengledRequest
 from .sengled_bulb import SengledBulb
+from .sengled_switch import SengledSwitch
 from .sengledapi_exceptions import SengledApiAccessToken
 
+
 class SengledApi:
-    def __init__(self, user_name, password):
+    def __init__(self, user_name, password, country):
         _LOGGER.debug("Sengled Api initializing.")
         self._user_name = user_name
         self._password = password
@@ -17,6 +19,7 @@ class SengledApi:
         self._in_error_state = False
         self._invalid_access_tokens = []
         self._access_token = None
+        self._country = country
         # Create device array
         self._all_devices = []
 
@@ -25,7 +28,6 @@ class SengledApi:
         self._access_token = await self.async_login(
             self._user_name, self._password, self._device_id
         )
-        _LOGGER.debug("sengledapi async_init" + self._access_token)
 
     async def async_login(self, username, password, device_id):
         _LOGGER.debug("Sengled Api log in async.")
@@ -41,7 +43,6 @@ class SengledApi:
 
         try:
             access_token = "JSESSIONID=" + data["jsessionid"]
-            _LOGGER.debug("Sengled Api accessToken " + str(access_token))
             self._access_token = access_token
             return access_token
         except:
@@ -75,48 +76,74 @@ class SengledApi:
         for device in await self.async_get_devices():
             _LOGGER.debug(device)
             if "lampInfos" in device:
-                for device in device["lampInfos"]:
-                    if(device["attributes"]["productCode"] == "E11-G13"):
+                for light in device["lampInfos"]:
+                    if light["attributes"]["productCode"] == "E11-G13":
                         bulbs.append(
                             SengledBulb(
                                 self,
-                                device["deviceUuid"],
-                                device["attributes"]["name"],
-                                ("on" if device["attributes"]["onoff"] == 1 else "off"),
-                                device["attributes"]["productCode"],
-                                device["attributes"]["brightness"],
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["brightness"],
                                 self._access_token,
+                                self._country,
                             )
                         )
-                    if(device["attributes"]["productCode"] == "E11-G23"):
+                    if light["attributes"]["productCode"] == "E11-G23":
                         bulbs.append(
                             SengledBulb(
                                 self,
-                                device["deviceUuid"],
-                                device["attributes"]["name"],
-                                ("on" if device["attributes"]["onoff"] == 1 else "off"),
-                                device["attributes"]["productCode"],
-                                device["attributes"]["brightness"],
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["brightness"],
                                 self._access_token,
+                                self._country,
                             )
                         )
-                    if(device["attributes"]["productCode"] == "E1A-AC2"):#Light Currently only one i have
+                    if (
+                        light["attributes"]["productCode"] == "E1A-AC2"
+                    ):  # Light Currently only one i have
                         bulbs.append(
                             SengledBulb(
                                 self,
-                                device["deviceUuid"],
-                                device["attributes"]["name"],
-                                ("on" if device["attributes"]["onoff"] == 1 else "off"),
-                                device["attributes"]["productCode"],
-                                device["attributes"]["brightness"],
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["brightness"],
                                 self._access_token,
+                                self._country,
                             )
                         )
 
         return bulbs
 
+    async def async_list_switch(self):
+        _LOGGER.debug("Sengled Api listing switches.")
+        switch = []
+        # This is my room list
+        for device in await self.async_get_devices():
+            _LOGGER.debug(device)
+            if "lampInfos" in device:
+                for switch in device["lampInfos"]:
+                    if switch["attributes"]["productCode"] == "E1E-G7F":
+                        switch.append(
+                            SengledSwitch(
+                                self,
+                                device["deviceUuid"],
+                                device["attributes"]["name"],
+                                ("on" if device["attributes"]["onoff"] == 1 else "off"),
+                                device["attributes"]["productCode"],
+                                self._access_token,
+                                self._country,
+                            )
+                        )
+        return switch
+
     async def async_do_request(self, url, payload, accesstoken):
-        _LOGGER.debug("async_do_request - Sengled Api doing request.")
         try:
             return await SengledRequest(url, payload).async_get_response(accesstoken)
         except:

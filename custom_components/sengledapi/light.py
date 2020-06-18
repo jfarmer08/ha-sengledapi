@@ -94,11 +94,7 @@ class SengledBulb(LightEntity):
         return SUPPORT_BRIGHTNESS
 
     async def async_turn_on(self, **kwargs):
-        """Instruct the light to turn on.
-
-        You can skip the brightness part if your light does not support
-        brightness control.
-        """
+        """Instruct the light to turn on. """
         self._light._brightness = kwargs.get(ATTR_BRIGHTNESS)
         await self._light.async_turn_on()
 
