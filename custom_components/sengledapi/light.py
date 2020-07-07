@@ -69,9 +69,6 @@ class SengledBulb(LightEntity):
             "state": self._state,
             "available": self._avaliable,
             "device model": self._device_model,
-            #            "ssid": self._ssid,
-            #           "ip": self._ip,
-            #            "rssi": self._rssi,
             "mac": self._device_mac,
         }
 
