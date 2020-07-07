@@ -5,6 +5,7 @@ This is a custom component to allow control of Sengled Bulbs in Homeassistant us
 ### Highlights of what **SengledApi** can do
 
 * Control Sengled Bulbs as lights through HA
+* Control Sengled Light Switch through HA
 
 ### Potential Downsides
 
@@ -47,7 +48,7 @@ sengledapi:
 
 * Restart HA
 
-* Entities will show up as `light.<friendly name>` for example (`light.livingroom_lamp`).
+* Entities will show up as `light.<friendly name>`, `switch.<friendly name>` for example (`light.livingroom_lamp`).
 
 ## Reporting an Issue
 
