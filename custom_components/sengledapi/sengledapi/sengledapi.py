@@ -116,8 +116,7 @@ class SengledApi:
                                 self._country,
                             )
                         )
-                    if (
-                        light["attributes"]["productCode"] == "E1A-AC2":  # Light Currently only one i have
+                    if light["attributes"]["productCode"] == "E1A-AC2":
                         bulbs.append(
                             SengledBulb(
                                 self,
@@ -129,7 +128,7 @@ class SengledApi:
                                 self._access_token,
                                 self._country,
                             )
-                        )
+                        )               
 
         return bulbs
 
