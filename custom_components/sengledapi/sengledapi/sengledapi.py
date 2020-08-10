@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import logging
+from uuid import uuid4
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ class SengledApi:
         _LOGGER.debug("Sengled Api initializing.")
         self._user_name = user_name
         self._password = password
-        self._device_id = "740447d2-eb6e-11e9-81b4-2a2ae2dbcce4"
+        self._device_id = uuid4().hex[:-16]
         self._in_error_state = False
         self._invalid_access_tokens = []
         self._access_token = None
