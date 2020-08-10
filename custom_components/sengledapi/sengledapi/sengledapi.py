@@ -7,6 +7,7 @@ _LOGGER = logging.getLogger(__name__)
 
 from .sengled_request import SengledRequest
 from .sengled_bulb import SengledBulb
+from .sengled_bulb import SengledColorBulb
 from .sengled_switch import SengledSwitch
 from .sengledapi_exceptions import SengledApiAccessToken
 
@@ -104,9 +105,9 @@ class SengledApi:
                                 self._country,
                             )
                         )
-                    if light["attributes"]["productCode"] == "E11-N1EA":
+                    if light["attributes"]["productCode"] == "E11-N1EA": #This is a wifi Bulb. We cannot control the color temp.
                         bulbs.append(
-                            SengledBulb(
+                            SengledColorBulb(
                                 self,
                                 light["deviceUuid"],
                                 light["attributes"]["name"],
