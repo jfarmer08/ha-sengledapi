@@ -14,6 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "sengledapi"
 CONF_COUNTRY = "country"
+CONF_TYPE = "wifi"
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -22,6 +23,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Required(CONF_USERNAME): cv.string,
                 vol.Required(CONF_PASSWORD): cv.string,
                 vol.Required(CONF_COUNTRY): cv.string,
+                vol.Optional(CONF_TYPE, default=False): cv.boolean,
             }
         )
     },
@@ -36,7 +38,7 @@ async def async_setup(hass, config):
 -------------------------------------------------------------------
 Sengled Bulb Home Assistant Integration
 
-Version: v0.1-beta.7
+Version: v0.1-beta.9
 This is a custom integration
 If you have any issues with this you need to open an issue here:
 
@@ -48,6 +50,7 @@ If you have any issues with this you need to open an issue here:
         config[DOMAIN].get(CONF_USERNAME),
         config[DOMAIN].get(CONF_PASSWORD),
         config[DOMAIN].get(CONF_COUNTRY),
+        config[DOMAIN].get(CONF_TYPE),
     )
     await sengledapi_account.async_init()
 
