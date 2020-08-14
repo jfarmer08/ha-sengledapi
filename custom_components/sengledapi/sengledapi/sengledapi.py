@@ -2,61 +2,182 @@
 
 import logging
 
+from urllib.parse import urlparse
+from uuid import uuid4
+import json
+import paho.mqtt.client as mqtt
+import requests
+import time
+
 _LOGGER = logging.getLogger(__name__)
 
+from .sengled_wifi_bulb import SengledWifiBulb
 from .sengled_request import SengledRequest
 from .sengled_bulb import SengledBulb
+from .sengled_bulb import SengledColorBulb
+from .sengled_bulb import SengledWifiColorBulb
 from .sengled_switch import SengledSwitch
 from .sengledapi_exceptions import SengledApiAccessToken
 
 
 class SengledApi:
-    def __init__(self, user_name, password, country):
+    def __init__(self, user_name, password, country, wifi):
         _LOGGER.debug("Sengled Api initializing.")
         self._user_name = user_name
         self._password = password
-        self._device_id = "740447d2-eb6e-11e9-81b4-2a2ae2dbcce4"
+        self._device_id = uuid4().hex[:-16]
         self._in_error_state = False
-        self._invalid_access_tokens = []
-        self._access_token = None
         self._country = country
+        self._jsession_id = None
+        self._wifi = wifi #Boolen Tells me to check for wifi bulbs from Sengled
         # Create device array
         self._all_devices = []
+        self._all_wifi_devices = []
+        self._mqtt_server = {
+            'host': self._country+'-mqtt.cloud.sengled.com',
+            'port': 443,
+            'path': '/mqtt',
+        }
+        self._mqtt_client = None
+        self._devices = []
+        self._subscribed = {}
 
     async def async_init(self):
         _LOGGER.debug("Sengled Api initializing async.")
-        self._access_token = await self.async_login(
-            self._user_name, self._password, self._device_id
-        )
+        self._access_token = await self.async_login(self._user_name, self._password, self._device_id)
 
     async def async_login(self, username, password, device_id):
-        _LOGGER.debug("Sengled Api log in async.")
-        url = "https://element.cloud.sengled.com/zigbee/customer/login.json"
+        """
+        Log user into server.
+        Returns True on success, False on failure.
+        """
+        _LOGGER.debug("Sengledapi: async_login")
+
+        if self._jsession_id:
+            if not self._is_session_timeout():
+                return
+
+        url = 'https://ucenter.cloud.sengled.com/user/app/customer/v2/AuthenCross.json'
         payload = {
-            "os_type": "android",
-            "pwd": password,
-            "user": username,
-            "uuid": device_id,
+            'uuid': self._device_id,
+            'user': self._user_name,
+            'pwd': self._password,
+            'osType': 'android',
+            'productCode': 'life',
+            'appCode': 'life',
         }
 
         data = await self.async_do_login_request(url, payload)
 
-        try:
-            access_token = "JSESSIONID=" + data["jsessionid"]
-            self._access_token = access_token
-            return access_token
-        except:
-            return None
+        _LOGGER.debug("SengledApi Login " + str(data))
+
+        if 'jsessionId' not in data or not data['jsessionId']:
+            return False
+
+        self._jsession_id = data['jsessionId']
+
+        if self._wifi:
+            self._get_server_info()
+
+            if not self._mqtt_client:
+                self._initialize_mqtt()
+            else:
+                self._reinitialize_mqtt()
+            #no need to get devices here lets wait until HA tells me too
+            #self.get_devices(force_update=True)
+
+        return True
 
     def is_valid_login(self):
-        if self._access_token == None:
+        if self._jsession_id == None:
             return False
         return True
 
-    def valid_access_token(self):
-        if self._access_token == None:
-            return "none"
-        return self._access_token
+    async def _is_session_timeout(self):
+        """
+        Determine whether or not the session has timed out.
+        Returns True if timed out, False otherwise.
+        """
+        _LOGGER.debug("SengledAPI _is_session_timeout")
+
+        if not self._jsession_id:
+            return True
+
+        url = 'https://ucenter.cloud.sengled.com/user/app/customer/isSessionTimeout.json'  # noqa
+        payload={
+            'uuid': self._device_id,
+            'os_type': 'android',
+            'appCode': 'life',
+        }
+
+        data = await self.async_do_is_session_timeout_request(url, payload)
+
+        _LOGGER.debug("Sengledapi: _is_session_timeout " + str(data))
+
+        if 'info' not in data or data['info'] != 'OK':
+            return True
+
+        return False
+
+    def _get_server_info(self):
+        """Get secondary server info from the primary."""
+        if not self._jsession_id:
+            _LOGGER.debug("Access token is null")
+            return
+
+        r = requests.post(
+            'https://life2.cloud.sengled.com/life2/server/getServerInfo.json',
+            headers={
+                'Content-Type': 'application/json',
+                'Cookie': 'JSESSIONID={}'.format(self._jsession_id),
+                'sid': self._jsession_id,
+                'X-Requested-With': 'com.sengled.life2',
+            },
+            json={},
+        )
+
+        if r.status_code != 200:
+            return
+
+        data = r.json()
+        _LOGGER.debug("SengledWifi Get Server Info" + str(data))
+        if 'inceptionAddr' not in data or not data['inceptionAddr']:
+            return
+
+        url = urlparse(data['inceptionAddr'])
+        if ':' in url.netloc:
+            self._mqtt_server['host'] = url.netloc.split(':')[0]
+            self._mqtt_server['port'] = int(url.netloc.split(':')[1], 10)
+            self._mqtt_server['path'] = url.path
+        else:
+            self._mqtt_server['host'] = url.netloc
+            self._mqtt_server['port'] = 443
+            self._mqtt_server['path'] = url.path
+        _LOGGER.debug("Sengled Wifi get server info" + str(url))
+
+
+    async def get_devices(self, force_update=False):
+        """
+        Get list of connected devices.
+        force_update -- whether or not to force an update from the server
+        """
+        if not self._all_wifi_devices:
+            url = ('https://life2.cloud.sengled.com/life2/device/list.json')
+            payload = {}
+            data = await self.async_do_request(url, payload)
+            if 'deviceList' not in data or not data['deviceList']:
+                return self._all_wifi_devices
+            for d in data['deviceList']:
+                found = False
+                
+                for dev in self._all_wifi_devices:
+                    if dev.uuid == d['deviceUuid']:
+                        found = True
+                        break
+                if not found:
+                    self._all_wifi_devices.append(SengledWifiBulb(self, d))
+        return self._all_wifi_devices
+
 
     async def async_get_devices(self):
         _LOGGER.debug("Sengled Api getting devices.")
@@ -65,7 +186,7 @@ class SengledApi:
                 "https://element.cloud.sengled.com/zigbee/device/getDeviceDetails.json"
             )
             payload = {}
-            data = await self.async_do_request(url, payload, self._access_token)
+            data = await self.async_do_request(url, payload)
             self._all_devices = data["deviceInfos"]
         return self._all_devices
 
@@ -77,7 +198,7 @@ class SengledApi:
             _LOGGER.debug(device)
             if "lampInfos" in device:
                 for light in device["lampInfos"]:
-                    if light["attributes"]["productCode"] == "E11-G13":
+                    if light["attributes"]["productCode"] == "E11-G13": #Sengled Soft White A19 Bulb
                         bulbs.append(
                             SengledBulb(
                                 self,
@@ -86,11 +207,11 @@ class SengledApi:
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
                                 light["attributes"]["brightness"],
-                                self._access_token,
+                                self._jsession_id,
                                 self._country,
                             )
                         )
-                    if light["attributes"]["productCode"] == "E11-G23":
+                    if light["attributes"]["productCode"] == "E11-G33": #Sengled Element Classic A60 B22
                         bulbs.append(
                             SengledBulb(
                                 self,
@@ -99,11 +220,11 @@ class SengledApi:
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
                                 light["attributes"]["brightness"],
-                                self._access_token,
+                                self._jsession_id,
                                 self._country,
                             )
                         )
-                    if light["attributes"]["productCode"] == "E11-N1EA":
+                    if light["attributes"]["productCode"] == "E12-N14": #Sengled Soft White BR30 Bulb
                         bulbs.append(
                             SengledBulb(
                                 self,
@@ -112,11 +233,11 @@ class SengledApi:
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
                                 light["attributes"]["brightness"],
-                                self._access_token,
+                                self._jsession_id,
                                 self._country,
                             )
                         )
-                    if light["attributes"]["productCode"] == "E1A-AC2":
+                    if light["attributes"]["productCode"] == "E11-G23": #Sengled Element Classic A60 E27
                         bulbs.append(
                             SengledBulb(
                                 self,
@@ -125,11 +246,185 @@ class SengledApi:
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
                                 light["attributes"]["brightness"],
-                                self._access_token,
+                                self._jsession_id,
                                 self._country,
                             )
-                        )               
-
+                        )
+                    if light["attributes"]["productCode"] == "E1A-AC2": #Sengled Element Downlight
+                        bulbs.append(
+                            SengledBulb(
+                                self,
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["brightness"],
+                                self._jsession_id,
+                                self._country,
+                            )
+                        )
+                    if light["attributes"]["productCode"] == "E13-N11": #Sengled Motion Sensor PAR38 Bulb
+                        bulbs.append(
+                            SengledBulb(
+                                self,
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["brightness"],
+                                self._jsession_id,
+                                self._country,
+                            )
+                        )
+                    if light["attributes"]["productCode"] == "Z01-CIA19NAE26": #Sengled Element Touch A19 E26
+                        bulbs.append(
+                            SengledBulb(
+                                self,
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["brightness"],
+                                self._jsession_id,
+                                self._country,
+                            )
+                        )
+                    if light["attributes"]["productCode"] == "Z01-A60EAE27": #Sengled Element Plus A60 E27
+                        bulbs.append(
+                            SengledBulb(
+                                self,
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["brightness"],
+                                self._jsession_id,
+                                self._country,
+                            )
+                        )
+                    if light["attributes"]["productCode"] == "Z01-A19NAE26": #Sengled Element Plus A19 Bulb
+                        bulbs.append(
+                            SengledBulb(
+                                self,
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["brightness"],
+                                self._jsession_id,
+                                self._country,
+                            )
+                        )
+                    if light["attributes"]["productCode"] == "E11-N13": #Sengled Element Extra Bright Soft White A19 Bulb
+                        bulbs.append(
+                            SengledBulb(
+                                self,
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["brightness"],
+                                self._jsession_id,
+                                self._country,
+                            )
+                        )
+                    if light["attributes"]["productCode"] == "E11-N14": #Sengled Element Extra Bright Daylight A19 Bulb
+                        bulbs.append(
+                            SengledBulb(
+                                self,
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["brightness"],
+                                self._jsession_id,
+                                self._country,
+                            )
+                        )
+                    if light["attributes"]["productCode"] == "E11-N1EA": #Sengled Multicolor A19 Bulb. This is a Multicolor Bulb. We cannot control the color temp.
+                        bulbs.append(
+                            SengledColorBulb(
+                                self,
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["brightness"],
+                                self._jsession_id,
+                                self._country,
+                            )
+                        )
+                    if light["attributes"]["productCode"] == "E12-N1E": #Sengled Soft White BR30 Bulb. This is a Multicolor Bulb. We cannot control the color temp.
+                        bulbs.append(
+                            SengledColorBulb(
+                                self,
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["brightness"],
+                                self._jsession_id,
+                                self._country,
+                            )
+                        )
+                    if light["attributes"]["productCode"] == "E1G-G8E": #Sengled Multicolor Light Strip 2M. This is a Multicolor Bulb. We cannot control the color temp.
+                        bulbs.append(
+                            SengledColorBulb(
+                                self,
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["brightness"],
+                                self._jsession_id,
+                                self._country,
+                            )
+                        )
+                    if light["attributes"]["productCode"] == "E11-U2E": #Sengled Element Color Plus E27 Bulb. This is a Multicolor Bulb. We cannot control the color temp.
+                        bulbs.append(
+                            SengledColorBulb(
+                                self,
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["brightness"],
+                                self._jsession_id,
+                                self._country,
+                            )
+                        )
+                    if light["attributes"]["productCode"] == "E11-U3E": #	Sengled Element Color Plus B22 Bulb. This is a Multicolor Bulb. We cannot control the color temp.
+                        bulbs.append(
+                            SengledColorBulb(
+                                self,
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["brightness"],
+                                self._jsession_id,
+                                self._country,
+                            )
+                        )
+        if self._wifi:
+            for devicebulb in await self.get_devices():
+                _LOGGER.debug("list bulbs uuid " + str(devicebulb.uuid))
+                _LOGGER.debug("list bulbs name " + str(devicebulb.name))
+                _LOGGER.debug("list bulbs switch " + str(devicebulb.switch))
+                _LOGGER.debug("list bulbs type_code " + str(devicebulb.type_code))
+                _LOGGER.debug("list bulbs brightness " + str(devicebulb.brightness))
+                bulbs.append(
+                    SengledWifiColorBulb(
+                        self,
+                        devicebulb.uuid,
+                        devicebulb.name,
+                        devicebulb.switch,
+                        devicebulb.type_code,
+                        devicebulb.brightness,
+                        self._jsession_id,
+                        self._country,
+                    )
+                )
         return bulbs
 
     async def async_list_switch(self):
@@ -154,11 +449,12 @@ class SengledApi:
                         )
         return switch
 
-    async def async_do_request(self, url, payload, accesstoken):
+#######################Do request#######################################################
+    async def async_do_request(self, url, payload):
         try:
-            return await SengledRequest(url, payload).async_get_response(accesstoken)
+            return await SengledRequest(url, payload).async_get_response(self._jsession_id)
         except:
-            return SengledRequest(url, payload).get_response(accesstoken)
+            return SengledRequest(url, payload).get_response(self._jsession_id)
 
     ###################################Login Request only###############################
     async def async_do_login_request(self, url, payload):
@@ -167,3 +463,115 @@ class SengledApi:
             return await SengledRequest(url, payload).async_get_login_response()
         except:
             return SengledRequest(url, payload).get_login_response()
+######################################Session Timeout#######################################
+    async def async_do_is_session_timeout_request(self, url, payload):
+        _LOGGER.debug("async_do_login_request - Sengled Api doing request.")
+        try:
+            return await SengledRequest(url, payload).async_is_session_timeout_response(self._jsession_id)
+        except:
+            return SengledRequest(url, payload).is_session_timeout_response(self._jsession_id)
+
+#########################MQTT#################################################
+    def _initialize_mqtt(self):
+        _LOGGER.debug("Sengledwifi Initialize the MQTT connection")
+        """Initialize the MQTT connection."""
+        if not self._jsession_id:
+            _LOGGER.debug("MQTT _initialize_mqtt no Accesstoken yet")
+            return False
+
+        def on_message(client, userdata, msg):
+            if msg.topic in self._subscribed:
+                self._subscribed[msg.topic](msg.payload)
+
+        self._mqtt_client = mqtt.Client(
+            client_id='{}@lifeApp'.format(self._jsession_id),
+            transport='websockets'
+        )
+        self._mqtt_client.tls_set_context()
+        self._mqtt_client.ws_set_options(
+            path=self._mqtt_server['path'],
+            headers={
+                'Cookie': 'JSESSIONID={}'.format(self._jsession_id),
+                'X-Requested-With': 'com.sengled.life2',
+            },
+        )
+        self._mqtt_client.on_message = on_message
+        self._mqtt_client.connect(
+            self._mqtt_server['host'],
+            port=self._mqtt_server['port'],
+            keepalive=30,
+        )
+        self._mqtt_client.loop_start()
+
+        return True
+
+    def _reinitialize_mqtt(self):
+        """Re-initialize the MQTT connection."""
+        _LOGGER.debug("Sengledwifi Re-initialize the MQTT connection")
+        if self._mqtt_client is None or not self._jsession_id:
+            _LOGGER.debug("MQTT _reinitialize_mqtt no Accesstoken yet")
+            return False
+
+        self._mqtt_client.loop_stop()
+        self._mqtt_client.disconnect()
+        self._mqtt_client.ws_set_options(
+            path=self._mqtt_server['path'],
+            headers={
+                'Cookie': 'JSESSIONID={}'.format(self._jsession_id),
+            },
+        )
+        self._mqtt_client.reconnect()
+        self._mqtt_client.loop_start()
+
+        for topic in self._subscribed:
+            self._subscribe_mqtt(topic, self._subscribed[topic])
+
+        return True
+
+    def _publish_mqtt(self, topic, payload=None):
+        """
+        Publish an MQTT message.
+        topic -- topic to publish the message on
+        payload -- message to send
+        Returns True if publish succeeded, False if not.
+        """
+        _LOGGER.debug("Sengledwifi Publish MQTT message")
+        if self._mqtt_client is None:
+            return False
+
+        r = self._mqtt_client.publish(topic, payload=payload)
+
+        try:
+            r.wait_for_publish()
+            return r.is_published
+        except ValueError:
+            pass
+
+        return False
+
+    def _subscribe_mqtt(self, topic, callback):
+        _LOGGER.debug("Sengledwifi Subscribe to an  MQTT Topic")
+        """
+        Subscribe to an MQTT topic.
+        topic -- topic to subscribe to
+        callback -- callback to call when a message comes in
+        """
+        if self._mqtt_client is None:
+            return False
+
+        r = self._mqtt_client.subscribe(topic)
+        if r[0] != mqtt.MQTT_ERR_SUCCESS:
+            return False
+
+        self._subscribed[topic] = callback
+        return True
+
+    def _unsubscribe_mqtt(self, topic, callback):
+        _LOGGER.debug("Sengledwifi Unsubscribe from an MQTT topic")
+        """
+        Unsubscribe from an MQTT topic.
+        topic -- topic to unsubscribe from
+        callback -- callback from previous subscription
+        """
+        if topic in self._subscribed:
+            del self._subscribed[topic]

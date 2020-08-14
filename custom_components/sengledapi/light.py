@@ -5,7 +5,6 @@ import logging
 from .sengledapi.sengledapi import SengledApi
 from . import DOMAIN
 
-
 import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
@@ -50,20 +49,24 @@ class SengledBulb(LightEntity):
     @property
     def name(self):
         """Return the display name of this light."""
+        _LOGGER.debug("SengledApi Light " + self._name +" "+ str(self._state) +" "+ str(self._brightness) +" "+ str(self._avaliable) +" "+ str(self._device_mac) +" "+ str(self._device_model))
         return self._name
 
     @property
     def unique_id(self):
+        _LOGGER.debug("SengledApi Light " + self._name +" "+ str(self._state) +" "+ str(self._brightness) +" "+ str(self._avaliable) +" "+ str(self._device_mac) +" "+ str(self._device_model))
         return self._device_mac
 
     @property
     def available(self):
         """Return the connection status of this light"""
+        _LOGGER.debug("SengledApi Light " + self._name +" "+ str(self._state) +" "+ str(self._brightness) +" "+ str(self._avaliable) +" "+ str(self._device_mac) +" "+ str(self._device_model))
         return self._avaliable
 
     @property
     def device_state_attributes(self):
         """Return device attributes of the entity."""
+        _LOGGER.debug("SengledApi Light " + self._name +" "+ str(self._state) +" "+ str(self._brightness) +" "+ str(self._avaliable) +" "+ str(self._device_mac) +" "+ str(self._device_model))
         return {
             ATTR_ATTRIBUTION: ATTRIBUTION,
             "state": self._state,
@@ -79,11 +82,13 @@ class SengledBulb(LightEntity):
         This method is optional. Removing it indicates to Home Assistant
         that brightness is not supported for this light.
         """
+        _LOGGER.debug("SengledApi Light " + self._name +" "+ str(self._state) +" "+ str(self._brightness) +" "+ str(self._avaliable) +" "+ str(self._device_mac) +" "+ str(self._device_model))
         return self._brightness
 
     @property
     def is_on(self):
         """Return true if light is on."""
+        _LOGGER.debug("SengledApi Light " + self._name +" "+ str(self._state) +" "+ str(self._brightness) +" "+ str(self._avaliable) +" "+ str(self._device_mac) +" "+ str(self._device_model))
         return self._state
 
     @property
@@ -92,18 +97,21 @@ class SengledBulb(LightEntity):
 
     async def async_turn_on(self, **kwargs):
         """Instruct the light to turn on. """
-        self._light._brightness = kwargs.get(ATTR_BRIGHTNESS)
-        await self._light.async_turn_on()
+        if self._device_model != "wificolora19":
+            self._light._brightness = kwargs.get(ATTR_BRIGHTNESS)
+            await self._light.async_turn_on()
 
     async def async_turn_off(self, **kwargs):
         """Instruct the light to turn off."""
-        await self._light.async_turn_off()
+        if self._device_model != "wificolora19":
+            await self._light.async_turn_off()
 
     async def async_update(self):
         """Fetch new state data for this light.
         This is the only method that should fetch new data for Home Assistant.
         """
-        await self._light.async_update()
-        self._state = self._light.is_on()
-        self._avaliable = self._light._avaliable
-        self._brightness = self._light._brightness
+        if self._device_model != "wificolora19":
+            await self._light.async_update()
+            self._state = self._light.is_on()
+            self._avaliable = self._light._avaliable
+            self._brightness = self._light._brightness
