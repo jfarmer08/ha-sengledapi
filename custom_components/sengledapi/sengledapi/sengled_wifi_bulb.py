@@ -72,9 +72,9 @@ class SengledWifiBulbProp:
             if attr["name"] == "colorTemperature":
                 _LOGGER.debug(
                     "what the fuck this should work color temperature"
-                    + str(self.translate(int(attr["value"]), 0, 100, 1000, 10000))
+                    + str(self.translate(int(attr["value"]), 0, 100, 0, 10000))
                 )
-                return self.translate(int(attr["value"]), 0, 100, 1000, 10000)
+                return self.translate(int(attr["value"]), 0, 100, 0, 10000)
         return 0
 
     @property
