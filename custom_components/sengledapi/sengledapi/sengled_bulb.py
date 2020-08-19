@@ -438,7 +438,7 @@ class SengledWifiColorBulb:
         self._device_model = device_model
         self._brightness = int(brightness)
         self._color_temperature = self.translate(
-            int(color_temperature), 0, 100, 1000, 10000
+            int(color_temperature), 0, 100, 0, 10000
         )
         self._jsession_id = jsession_id
         self._country = country
@@ -599,7 +599,7 @@ class SengledWifiColorBulb:
                 self._state = items.switch
                 self._avaliable = items.online
                 self._color_temperature = self.translate(
-                    int(items.color_temperature), 0, 100, 1000, 10000
+                    int(items.color_temperature), 0, 100, 0, 10000
                 )
                 _LOGGER.debug(items.brightness)
                 _LOGGER.debug(items.color_temperature)

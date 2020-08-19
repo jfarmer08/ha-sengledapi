@@ -62,6 +62,7 @@ async def async_setup(hass, config):
         _LOGGER.debug("SengledApi Connected to Sengled account")
 
         sengledapi_devices = await sengledapi_account.async_get_devices()
+        sengledapiwifi_devices = await sengledapi_account.get_devices()
 
         # Store the logged in account object for the platforms to use.
         _LOGGER.debug(
@@ -72,6 +73,8 @@ async def async_setup(hass, config):
         _LOGGER.debug("SengledApi Start up lights, switch and binary sensor components")
         # Start up lights and switch components
         if sengledapi_devices:
+            await discovery.async_load_platform(hass, "light", DOMAIN, {}, config)
+        elif sengledapiwifi_devices:
             await discovery.async_load_platform(hass, "light", DOMAIN, {}, config)
         else:
             _LOGGER.error(
