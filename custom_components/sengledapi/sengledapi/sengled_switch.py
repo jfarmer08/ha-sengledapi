@@ -1,3 +1,5 @@
+"""Sengled Bulb Integration."""
+
 import asyncio
 import logging
 
