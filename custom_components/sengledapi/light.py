@@ -163,6 +163,8 @@ class SengledBulb(LightEntity):
         features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP | SUPPORT_COLOR
         if self._device_model != "wificolora19":
             features = SUPPORT_BRIGHTNESS
+        if self._device_model == "wifia19":
+            features = SUPPORT_BRIGHTNESS
         return features
 
     async def async_turn_on(self, **kwargs):
