@@ -15,7 +15,7 @@ _LOGGER.debug("SengledApi: sengled_bulb class")
 mac_colon = [":"]
 
 
-class SengledWifiBulb:
+class SengledWifiBulbProp:
     def __init__(self, client, info):
         """
         Initialize the bulb.
