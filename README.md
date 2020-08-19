@@ -32,6 +32,7 @@ This is a custom component to allow control of Sengled Bulbs in Homeassistant us
 Country Code example:
 * country: us
 * country: au
+* country: it
 
 ## Configuration
 
