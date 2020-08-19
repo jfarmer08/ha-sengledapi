@@ -459,20 +459,7 @@ class SengledApi:
                             self._country,
                         )
                     )
-                if devicebulb.type_code == "W11-U31":
-                    bulbs.append(
-                        SengledWifiBulb(
-                            self,
-                            devicebulb.uuid,
-                            devicebulb.name,
-                            devicebulb.switch,
-                            devicebulb.type_code,
-                            devicebulb.brightness,
-                            self._jsession_id,
-                            self._country,
-                        )
-                    )
-                if devicebulb.type_code == "W11-U21":
+                if devicebulb.type_code == "wifia19":
                     bulbs.append(
                         SengledWifiBulb(
                             self,
