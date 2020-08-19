@@ -5,11 +5,7 @@ import logging
 import voluptuous as vol
 
 from .sengledapi.sengledapi import SengledApi
-from .const import (
-    DOMAIN,
-    CONF_COUNTRY,
-    CONF_TYPE
-)
+from .const import DOMAIN, CONF_COUNTRY, CONF_TYPE
 
 from homeassistant.const import CONF_DEVICES, CONF_PASSWORD, CONF_TIMEOUT, CONF_USERNAME
 from homeassistant.helpers import discovery
@@ -41,7 +37,7 @@ async def async_setup(hass, config):
     -------------------------------------------------------------------
     Sengled Bulb Home Assistant Integration Created from Config
 
-    Version: v0.1-beta.9
+    Version: v0.1-beta.10
     This is a custom integration
     If you have any issues with this you need to open an issue here:
     https://github.com/jfarmer08/ha-sengledapi
@@ -84,20 +80,16 @@ async def async_setup(hass, config):
 
     return True
 
+
 async def async_setup_entry(hass, entry):
     """Set up Sengled platform."""
     username = entry.data[CONF_USERNAME]
     password = entry.data[CONF_PASSWORD]
     country = entry.data[CONF_COUNTRY]
     bulbtype = entry.data[CONF_TYPE]
-    
-    sengledapi_account = SengledApi(
-        username,
-        password,
-        country,
-        bulbtype,
-    )
-        
+
+    sengledapi_account = SengledApi(username, password, country, bulbtype,)
+
     await sengledapi_account.async_init()
 
     if not sengledapi_account.is_valid_login():
