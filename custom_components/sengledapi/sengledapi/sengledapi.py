@@ -12,11 +12,12 @@ import json
 
 _LOGGER = logging.getLogger(__name__)
 
-from .sengled_wifi_bulb import SengledWifiBulb
+from .sengled_wifi_bulb import SengledWifiBulbProp
 from .sengled_request import SengledRequest
 from .sengled_bulb import SengledBulb
 from .sengled_bulb import SengledColorBulb
 from .sengled_bulb import SengledWifiColorBulb
+from .sengled_bulb import SengledWifiBulb
 from .sengled_switch import SengledSwitch
 from .sengledapi_exceptions import SengledApiAccessToken
 
@@ -178,7 +179,7 @@ class SengledApi:
                         break
                 if not found:
                     _LOGGER.debug("get devices %s", d)
-                    self._all_wifi_devices.append(SengledWifiBulb(self, d))
+                    self._all_wifi_devices.append(SengledWifiBulbProp(self, d))
         return self._all_wifi_devices
 
     async def async_get_devices(self):
@@ -442,32 +443,48 @@ class SengledApi:
                         )
         if self._wifi:
             for devicebulb in await self.get_devices():
-                _LOGGER.debug("list bulbs uuid " + str(devicebulb.uuid))
-                _LOGGER.debug("list bulbs name " + str(devicebulb.name))
-                _LOGGER.debug("list bulbs switch " + str(devicebulb.switch))
-                _LOGGER.debug("list bulbs type_code " + str(devicebulb.type_code))
-                _LOGGER.debug("list bulbs brightness " + str(devicebulb.brightness))
-                _LOGGER.debug("list bulbs color " + str(devicebulb.color))
-                _LOGGER.debug("list bulbs color mode " + str(devicebulb.color_mode))
-                _LOGGER.debug(
-                    "list bulbs color temperature " + str(devicebulb.color_temperature)
-                )
-
-                bulbs.append(
-                    SengledWifiColorBulb(
-                        self,
-                        devicebulb.uuid,
-                        devicebulb.name,
-                        devicebulb.switch,
-                        devicebulb.type_code,
-                        devicebulb.brightness,
-                        devicebulb.color,
-                        devicebulb.color_mode,
-                        devicebulb.color_temperature,
-                        self._jsession_id,
-                        self._country,
+                if devicebulb.type_code == "wificolora19":
+                    bulbs.append(
+                        SengledWifiColorBulb(
+                            self,
+                            devicebulb.uuid,
+                            devicebulb.name,
+                            devicebulb.switch,
+                            devicebulb.type_code,
+                            devicebulb.brightness,
+                            devicebulb.color,
+                            devicebulb.color_mode,
+                            devicebulb.color_temperature,
+                            self._jsession_id,
+                            self._country,
+                        )
                     )
-                )
+                if devicebulb.type_code == "W11-U31":
+                    bulbs.append(
+                        SengledWifiBulb(
+                            self,
+                            devicebulb.uuid,
+                            devicebulb.name,
+                            devicebulb.switch,
+                            devicebulb.type_code,
+                            devicebulb.brightness,
+                            self._jsession_id,
+                            self._country,
+                        )
+                    )
+                if devicebulb.type_code == "W11-U21":
+                    bulbs.append(
+                        SengledWifiBulb(
+                            self,
+                            devicebulb.uuid,
+                            devicebulb.name,
+                            devicebulb.switch,
+                            devicebulb.type_code,
+                            devicebulb.brightness,
+                            self._jsession_id,
+                            self._country,
+                        )
+                    )
         return bulbs
 
     async def async_list_switch(self):
