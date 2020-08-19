@@ -1,9 +1,12 @@
 {
   "domain": "sengledapi",
-  "name": "Sengled Bulb Api Integration",
-  "documentation": "",
+  "name": "Sengled Integration",
+  "documentation": "https://github.com/jfarmer08/ha-sengledapi",
   "dependencies": [],
   "codeowners": ["@jfarmer08"],
-	"requirements": [],
-	"icons": []
+  "requirements": [],
+  "icons": [
+    "https://camo.githubusercontent.com/4e40f86270556ef2922b12694496746b7d96d6fd/68747470733a2f2f7a69676265652e626c616b61646465722e636f6d2f6173736574732f696d616765732f646576696365732f53656e676c65645f4531312d4731332e6a7067"
+  ],
+  "config_flow": false
 }
