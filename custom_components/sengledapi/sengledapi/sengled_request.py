@@ -51,9 +51,6 @@ class SengledRequest:
         _LOGGER.debug(
             "SengledApi: async_get_response Sengled Request getting response async."
         )
-        _LOGGER.debug(self._url)
-        _LOGGER.debug(self._header)
-        _LOGGER.debug(self._payload)
         async with aiohttp.ClientSession() as session:
             sslcontext = ssl.create_default_context(cafile=certifi.where())
             async with session.post(
