@@ -38,7 +38,6 @@ class SengledWifiBulb:
         self._brightness = int(brightness)
         self._color_temperature = None
         self._device_rssi = device_rssi
-        self._isonline = None
         self._jsession_id = jsession_id
         self._country = country
 
@@ -109,11 +108,11 @@ class SengledWifiBulb:
                 _LOGGER.debug("SengledApi: Wifi Bulb update return " + str(item))
                 bulbs.append(SengledWifiBulbProperty(self, item))
             for items in bulbs:
-                self._friendly_name = items.name
-                self._brightness = items.brightness
-                self._state = items.switch
-                self._avaliable = items.online
-                self._color_temperature = items.color_temperature
+                if items.uuid == self._device_mac:
+                    self._friendly_name = items.name
+                    self._brightness = items.brightness
+                    self._state = items.switch
+                    self._avaliable = items.online
 
     def translate(self, value, leftMin, leftMax, rightMin, rightMax):
         # Figure out how 'wide' each range is
