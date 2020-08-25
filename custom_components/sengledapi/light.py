@@ -25,7 +25,7 @@ from homeassistant.components.light import (
 )
 
 # Add to support quicker update time. Is this to Fast?
-SCAN_INTERVAL = timedelta(seconds=5)
+SCAN_INTERVAL = timedelta(seconds=30)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -150,7 +150,7 @@ class SengledBulb(LightEntity):
             await self._light.async_turn_on()
         if ATTR_BRIGHTNESS in kwargs:
             await self._light.async_turn_on()
-            await self._light.set_brightness(kwargs[ATTR_BRIGHTNESS])
+            await self._light.async_set_brightness(kwargs[ATTR_BRIGHTNESS])
         if ATTR_HS_COLOR in kwargs:
             self._light.set_color(kwargs[ATTR_HS_COLOR])
         if ATTR_COLOR_TEMP in kwargs:
