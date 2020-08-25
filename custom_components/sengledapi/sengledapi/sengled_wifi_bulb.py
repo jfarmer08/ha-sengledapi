@@ -37,6 +37,7 @@ class SengledWifiBulb:
         self._device_model = device_model
         self._brightness = int(brightness)
         self._color_temperature = None
+        self._color = None
         self._device_rssi = device_rssi
         self._jsession_id = jsession_id
         self._country = country

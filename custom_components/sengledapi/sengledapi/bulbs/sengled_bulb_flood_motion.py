@@ -34,6 +34,7 @@ class SengledBulbFloodMotion:
         self._jsession_id = jsession_id
         self._country = country
         self._color_temperature = None
+        self._color = None
         self._device_rssi = self.translate(int(device_rssi), 0, 5, 0, -100)
 
     async def async_turn_on(self):

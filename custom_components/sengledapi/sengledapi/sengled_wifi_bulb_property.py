@@ -38,7 +38,7 @@ class SengledWifiBulbProperty:
         """Bulb brightness."""
         for attr in self._attributes:
             if attr["name"] == "brightness":
-                return int(attr["value"]) / 100 * 255
+                return self.translate(int(attr["value"]), 0, 100, 0, 255)
         return 0
 
     @property
@@ -46,7 +46,7 @@ class SengledWifiBulbProperty:
         """Bulb consumption time."""
         for attr in self._attributes:
             if attr["name"] == "colorTemperature":
-                return int(attr["value"])
+                return self.translate(int(attr["value"]), 0, 100, 2000, 6500)
         return 0
 
     @property

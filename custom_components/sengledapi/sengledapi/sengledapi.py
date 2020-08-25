@@ -185,7 +185,7 @@ class SengledApi:
                         found = True
                         break
                 if not found:
-                    _LOGGER.debug("get devices %s", d)
+                    # _LOGGER.debug("get devices %s", d)
                     self._all_wifi_devices.append(SengledWifiBulbProperty(self, d))
         return self._all_wifi_devices
 
@@ -211,6 +211,23 @@ class SengledApi:
                     if (
                         light["attributes"]["productCode"] == "E11-G13"
                     ):  # Sengled Soft White A19 Bulb
+                        bulbs.append(
+                            SengledBulb(
+                                self,
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["brightness"],
+                                light["attributes"]["deviceRssi"],
+                                light["attributes"]["isOnline"],
+                                self._jsession_id,
+                                self._country,
+                            )
+                        )
+                    if (
+                        light["attributes"]["productCode"] == "E11-G14"
+                    ):  # Sengled Daylight A19 Bulb
                         bulbs.append(
                             SengledBulb(
                                 self,

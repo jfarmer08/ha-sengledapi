@@ -31,6 +31,7 @@ class SengledBulb:
         self._just_changed_state = False
         self._device_model = device_model
         self._brightness = int(brightness)
+        self._color = None
         self._jsession_id = jsession_id
         self._country = country
         self._color_temperature = None
