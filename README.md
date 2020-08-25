@@ -15,11 +15,13 @@ You can find [Supported Product from Sengled](https://github.com/jfarmer08/ha-se
 * This is an unofficial implementation of the api and therefore may be disabled or broken at anytime by Sengled
 * I only have Element Classic A19 Kit (Light bulbs + Hub) to test https://us.sengled.com/products/element-classic-kit
 * An update may break them without my knowledge. **Please use the betas as they become avaliable**
-* In this Update
+
+**In this Update**
   * Wifi bulbs are now supported by adding ```wifi: true``` to your configuration. All functions at this time are not supported.
   # Only 2 wifi bulbs are supported at this time
     1. Sengled Smart Wi-Fi LED Multicolor A19 Bulb : wificolora19
     2. Sengled Smart Wi-Fi LED Daylight A19 Bulb : wifia19
+
       # Supported Functions of Wifi Bulbs
         1. View bulbs on/off state
         2. Control bulbs on/off state
