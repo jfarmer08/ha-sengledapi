@@ -5,6 +5,10 @@ This is a custom component to allow control of Sengled Bulbs in Homeassistant us
 # Supported Bulbs from Sengled
 You can find [Supported Product from Sengled](https://github.com/jfarmer08/ha-sengledapi/wiki/Supported-Product-from-Sengled.) here. If you have other bulbs that are not on this list and they do work, you can create a pull request to have the wiki updated.
 
+**The goal is to support all Sengled Bulbs so feel free to buy me coffee.
+
+<a href="https://www.buymeacoffee.com/jfarmer08" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-red.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
+
 ### Highlights of what **SengledApi** can do
 
 * Control Sengled Bulbs as lights through HA
@@ -80,5 +84,3 @@ sengledapi:
 2. Restart HA
 3. Verify you're still having the issue
 4. File an issue in this Github Repository
-
-<a href="https://www.buymeacoffee.com/jfarmer08" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-red.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
