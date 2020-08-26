@@ -500,6 +500,10 @@ class SengledApi:
         if self._wifi:
             for devicebulb in await self.get_devices():
                 if devicebulb.type_code == "wificolora19":
+                    _LOGGER.debug("SengledAPI: uuid " + devicebulb.uuid)
+                    _LOGGER.debug(
+                        "SengledAPI: brightness " + str(devicebulb.brightness)
+                    )
                     bulbs.append(
                         SengledWifiColorBulb(
                             self,
@@ -507,7 +511,7 @@ class SengledApi:
                             devicebulb.name,
                             devicebulb.switch,
                             devicebulb.type_code,
-                            devicebulb.brightness,
+                            round((devicebulb.brightness / 100) * 255),
                             devicebulb.color,
                             devicebulb.color_mode,
                             devicebulb.color_temperature,

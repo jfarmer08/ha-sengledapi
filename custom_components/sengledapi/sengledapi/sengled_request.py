@@ -57,7 +57,7 @@ class SengledRequest:
                 self._url, headers=self._header, data=self._payload, ssl=sslcontext
             ) as resp:
                 data = await resp.json()
-                _LOGGER.debug("SengledApi: data from async_get_response " + str(data))
+                # _LOGGER.debug("SengledApi: data from async_get_response " + str(data))
                 return data
 
     ########################Login#####################################

@@ -84,8 +84,9 @@ class SengledBulb(LightEntity):
             "state": self._state,
             "available": self._avaliable,
             "device model": self._device_model,
-            "device rssi": self._device_rssi,
+            "rssi": self._device_rssi,
             "mac": self._device_mac,
+            "brightness": self._brightness,
         }
 
     @property
@@ -137,6 +138,8 @@ class SengledBulb(LightEntity):
             features = SUPPORT_BRIGHTNESS
         if self._device_model == "wifia19":
             features = SUPPORT_BRIGHTNESS
+        if self._device_model == "E11-N1EA":
+            features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP
         return features
 
     async def async_turn_on(self, **kwargs):
@@ -149,15 +152,14 @@ class SengledBulb(LightEntity):
         ):
             await self._light.async_turn_on()
         if ATTR_BRIGHTNESS in kwargs:
-            await self._light.async_turn_on()
             await self._light.async_set_brightness(kwargs[ATTR_BRIGHTNESS])
         if ATTR_HS_COLOR in kwargs:
-            self._light.set_color(kwargs[ATTR_HS_COLOR])
+            self._light.async_set_color(kwargs[ATTR_HS_COLOR])
         if ATTR_COLOR_TEMP in kwargs:
             color_temp = colorutil.color_temperature_mired_to_kelvin(
                 kwargs[ATTR_COLOR_TEMP]
             )
-            await self._light.set_color_temp(color_temp)
+            await self._light.async_color_temperature(color_temp)
 
     async def async_turn_off(self, **kwargs):
         """Instruct the light to turn off."""

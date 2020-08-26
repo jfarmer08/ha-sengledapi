@@ -37,7 +37,7 @@ async def async_setup(hass, config):
     -------------------------------------------------------------------
     Sengled Bulb Home Assistant Integration Created from Config
 
-    Version: v0.1-beta.14
+    Version: v0.1-beta.15
     This is a custom integration
     If you have any issues with this you need to open an issue here:
     https://github.com/jfarmer08/ha-sengledapi
