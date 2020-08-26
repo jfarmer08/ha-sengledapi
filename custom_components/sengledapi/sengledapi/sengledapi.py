@@ -511,7 +511,7 @@ class SengledApi:
                             devicebulb.name,
                             devicebulb.switch,
                             devicebulb.type_code,
-                            round((devicebulb.brightness / 100) * 255),
+                            devicebulb.brightness,
                             devicebulb.color,
                             devicebulb.color_mode,
                             devicebulb.color_temperature,

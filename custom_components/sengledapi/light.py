@@ -87,24 +87,21 @@ class SengledBulb(LightEntity):
             "rssi": self._device_rssi,
             "mac": self._device_mac,
             "brightness": self._brightness,
+            "colorTemp": self._color_temperature,
         }
 
     @property
     def color_temp(self):
         """Return the color_temp of the light."""
-        color_temp = int(self._color_temperature)
-        if color_temp is None:
-            return None
-        return colorutil.color_temperature_kelvin_to_mired(color_temp)
+        _LOGGER.debug("SENGLEDAPI: Color Temp before convert to mired showld be in kelvin %s", str(self._color_temperature))
+        _LOGGER.debug("SENGLEDAPI: Color Temp after convert to mired  %s",str(colorutil.color_temperature_kelvin_to_mired(self._color_temperature)))
+        return colorutil.color_temperature_kelvin_to_mired(self._color_temperature)
 
     @property
     def hs_color(self):
         """Return the hs_color of the light."""
         _LOGGER.debug("FARMER::::::: %s", str(self._color))
         a, b, c = self._color.split(":")
-        _LOGGER.debug(a)
-        _LOGGER.debug(b)
-        _LOGGER.debug(c)
         return colorutil.color_RGB_to_hs(int(a), int(b), int(c))
 
     #    @property
@@ -145,11 +142,7 @@ class SengledBulb(LightEntity):
     async def async_turn_on(self, **kwargs):
         """Instruct the light to turn on. """
         """Turn on or control the light."""
-        if (
-            ATTR_BRIGHTNESS not in kwargs
-            and ATTR_HS_COLOR not in kwargs
-            and ATTR_COLOR_TEMP not in kwargs
-        ):
+        if (ATTR_BRIGHTNESS not in kwargs and ATTR_HS_COLOR not in kwargs and ATTR_COLOR_TEMP not in kwargs):
             await self._light.async_turn_on()
         if ATTR_BRIGHTNESS in kwargs:
             await self._light.async_set_brightness(kwargs[ATTR_BRIGHTNESS])
