@@ -3,7 +3,7 @@
 This is a custom component to allow control of Sengled Bulbs in Homeassistant using the unofficial Sengled API. Please note this mimics the Sengled app and therefore Sengled may cut off access at anytime.
 
 # Supported Bulbs from Sengled
-You can find [Supported Product from Sengled](https://github.com/jfarmer08/ha-sengledapi/wiki/Supported-Product-from-Sengled.) here. If you have other bulbs that are not on this list and they do work, you can create a pull request to have the wiki updated.
+You can find [Supported Products](https://github.com/jfarmer08/ha-sengledapi/wiki) here. If you have other bulbs that are not on this list and they do work, you can create a pull request to have the wiki updated.
 
 **The goal is to support all Sengled Bulbs so feel free to buy me coffee.
 
