@@ -208,9 +208,7 @@ class SengledApi:
             _LOGGER.debug(device)
             if "lampInfos" in device:
                 for light in device["lampInfos"]:
-                    if (
-                        light["attributes"]["productCode"] == "E11-G13"
-                    ):  # Sengled Soft White A19 Bulb
+                    if (light["attributes"]["productCode"] == "E11-G13"):  # Sengled Soft White A19 Bulb
                         bulbs.append(
                             SengledBulb(
                                 self,
@@ -225,9 +223,7 @@ class SengledApi:
                                 self._country,
                             )
                         )
-                    if (
-                        light["attributes"]["productCode"] == "E11-G14"
-                    ):  # Sengled Daylight A19 Bulb
+                    if (light["attributes"]["productCode"] == "E11-G14"):  # Sengled Daylight A19 Bulb
                         bulbs.append(
                             SengledBulb(
                                 self,
@@ -242,9 +238,7 @@ class SengledApi:
                                 self._country,
                             )
                         )
-                    if (
-                        light["attributes"]["productCode"] == "E11-G33"
-                    ):  # Sengled Element Classic A60 B22
+                    if (light["attributes"]["productCode"] == "E11-G33"):  # Sengled Element Classic A60 B22
                         bulbs.append(
                             SengledBulb(
                                 self,
@@ -259,9 +253,7 @@ class SengledApi:
                                 self._country,
                             )
                         )
-                    if (
-                        light["attributes"]["productCode"] == "E12-N14"
-                    ):  # Sengled Soft White BR30 Bulb
+                    if (light["attributes"]["productCode"] == "E12-N14"):  # Sengled Soft White BR30 Bulb
                         bulbs.append(
                             SengledBulb(
                                 self,
@@ -276,9 +268,7 @@ class SengledApi:
                                 self._country,
                             )
                         )
-                    if (
-                        light["attributes"]["productCode"] == "E11-G23"
-                    ):  # Sengled Element Classic A60 E27
+                    if (light["attributes"]["productCode"] == "E11-G23"):  # Sengled Element Classic A60 E27
                         bulbs.append(
                             SengledBulb(
                                 self,
@@ -293,9 +283,7 @@ class SengledApi:
                                 self._country,
                             )
                         )
-                    if (
-                        light["attributes"]["productCode"] == "E1A-AC2"
-                    ):  # Sengled Element Downlight
+                    if (light["attributes"]["productCode"] == "E1A-AC2"):  # Sengled Element Downlight
                         bulbs.append(
                             SengledBulb(
                                 self,
@@ -310,9 +298,7 @@ class SengledApi:
                                 self._country,
                             )
                         )
-                    if (
-                        light["attributes"]["productCode"] == "E13-N11"
-                    ):  # Sengled Motion Sensor PAR38 Bulb
+                    if (light["attributes"]["productCode"] == "E13-N11"):  # Sengled Motion Sensor PAR38 Bulb
                         bulbs.append(
                             SengledBulbFloodMotion(
                                 self,

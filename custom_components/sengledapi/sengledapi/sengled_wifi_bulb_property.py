@@ -59,6 +59,7 @@ class SengledWifiBulbProperty:
         # This is being displayed as RGB
         for attr in self._attributes:
             if attr["name"] == "color":
+                _LOGGER.debug("SengledApi: Color From propertys %s", str(attr["value"]))
                 return attr["value"]
 
         return ""

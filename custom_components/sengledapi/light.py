@@ -88,31 +88,30 @@ class SengledBulb(LightEntity):
             "mac": self._device_mac,
             "brightness": self._brightness,
             "colorTemp": self._color_temperature,
+            "color": self._color,
         }
 
     @property
     def color_temp(self):
         """Return the color_temp of the light."""
-        _LOGGER.debug("SENGLEDAPI: Color Temp before convert to mired showld be in kelvin %s", str(self._color_temperature))
-        _LOGGER.debug("SENGLEDAPI: Color Temp after convert to mired  %s",str(colorutil.color_temperature_kelvin_to_mired(self._color_temperature)))
         return colorutil.color_temperature_kelvin_to_mired(self._color_temperature)
 
     @property
     def hs_color(self):
         """Return the hs_color of the light."""
-        _LOGGER.debug("FARMER::::::: %s", str(self._color))
+        #_LOGGER.debug("FARMER::::::: %s", str(self._color))
         a, b, c = self._color.split(":")
         return colorutil.color_RGB_to_hs(int(a), int(b), int(c))
 
-    #    @property
-    #    def min_mireds(self):
-    #        """Return color temperature min mireds."""
-    #        return colorutil.color_temperature_kelvin_to_mired(2000)
+        @property
+        def min_mireds(self):
+            """Return color temperature min mireds."""
+            return colorutil.color_temperature_kelvin_to_mired(6500)
 
-    #    @property
-    ##    def max_mireds(self):
-    #        """Return color temperature max mireds."""
-    #        return colorutil.color_temperature_kelvin_to_mired(6500)
+        @property
+        def max_mireds(self):
+            """Return color temperature max mireds."""
+            return colorutil.color_temperature_kelvin_to_mired(2000)
 
     @property
     def brightness(self):
@@ -147,11 +146,11 @@ class SengledBulb(LightEntity):
         if ATTR_BRIGHTNESS in kwargs:
             await self._light.async_set_brightness(kwargs[ATTR_BRIGHTNESS])
         if ATTR_HS_COLOR in kwargs:
-            self._light.async_set_color(kwargs[ATTR_HS_COLOR])
+            hs = kwargs.get(ATTR_HS_COLOR)
+            color = colorutil.color_hs_to_RGB(hs[0], hs[1])
+            await self._light.async_set_color(color)
         if ATTR_COLOR_TEMP in kwargs:
-            color_temp = colorutil.color_temperature_mired_to_kelvin(
-                kwargs[ATTR_COLOR_TEMP]
-            )
+            color_temp = colorutil.color_temperature_mired_to_kelvin(kwargs[ATTR_COLOR_TEMP])
             await self._light.async_color_temperature(color_temp)
 
     async def async_turn_off(self, **kwargs):

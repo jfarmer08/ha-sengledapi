@@ -92,28 +92,6 @@ class SengledWifiColorBulb:
             json.dumps(data_brightness),
         )
 
-    async def async_set_color(self, color):
-        _LOGGER.debug(
-            "SengledApi: Wifi Color Bulb "
-            + self._friendly_name
-            + " "
-            + self._device_mac
-            + " .Setting Color"
-        )
-        # need to convert to RGB I think
-        _LOGGER.info("SengledApi: Turn on Brightness %s", color)
-        data_color = {
-            "dn": self._device_mac,
-            "type": "color",
-            "value": "255:255:0",
-            "time": int(time.time() * 1000),
-        }
-        self._state = True
-        self._just_changed_state = True
-        self._api._publish_mqtt(
-            "wifielement/{}/update".format(self._device_mac), json.dumps(data_color),
-        )
-
     async def async_color_temperature(self, color_temp):
         _LOGGER.debug(
             "SengledApi: Wifi Color Bulb "
@@ -137,6 +115,32 @@ class SengledWifiColorBulb:
         self._api._publish_mqtt(
             "wifielement/{}/update".format(self._device_mac),
             json.dumps(data_color_temperature),
+        )
+
+    async def async_set_color(self, color):
+        _LOGGER.debug(
+            "SengledApi: Wifi Color Bulb "
+            + self._friendly_name
+            + " "
+            + self._device_mac
+            + " .Setting Color"
+        )
+
+        mycolor = str(color)
+        for r in ((" ", ""), (",", ":"), ("(",""),(")","")):
+            mycolor = mycolor.replace(*r)
+
+        _LOGGER.info("SengledApi: Wifi Set Color %s", str(mycolor))
+        data_color = {
+            "dn": self._device_mac,
+            "type": "color",
+            "value": mycolor,
+            "time": int(time.time() * 1000),
+        }
+        self._state = True
+        self._just_changed_state = True
+        self._api._publish_mqtt(
+            "wifielement/{}/update".format(self._device_mac), json.dumps(data_color),
         )
 
     async def async_turn_off(self):
@@ -192,13 +196,6 @@ class SengledWifiColorBulb:
                     self._state = items.switch
                     self._avaliable = items.online
                     self._color_temperature = items.color_temperature
-                    _LOGGER.debug(
-                        "SengledApi: From Update brightness %s", items.brightness
-                    )
-                    _LOGGER.debug(
-                        "SengledApi: From Update color temp %s",
-                        self._color_temperature,
-                    )
 
     def translate(self, value, leftMin, leftMax, rightMin, rightMax):
         # Figure out how 'wide' each range is
