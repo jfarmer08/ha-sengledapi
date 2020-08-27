@@ -38,16 +38,20 @@ class SengledWifiBulbProperty:
         """Bulb brightness."""
         for attr in self._attributes:
             if attr["name"] == "brightness":
-                return self.translate(int(attr["value"]), 0, 100, 0, 255)
+                return int(attr["value"], 10)
         return 0
 
     @property
     def color_temperature(self):
-        """Bulb consumption time."""
+        """Bulb Temperature."""
+        """
+        Set the color temperature of a light device.
+        temperature: 0 (warm) - 100 (cold)
+        """
         for attr in self._attributes:
             if attr["name"] == "colorTemperature":
-                return self.translate(int(attr["value"]), 0, 100, 2000, 6500)
-        return 0
+                return round(self.translate(int(attr["value"]), 0, 100, 2000, 6500))
+        return 1
 
     @property
     def color(self):
@@ -55,6 +59,7 @@ class SengledWifiBulbProperty:
         # This is being displayed as RGB
         for attr in self._attributes:
             if attr["name"] == "color":
+                _LOGGER.debug("SengledApi: Color From propertys %s", str(attr["value"]))
                 return attr["value"]
 
         return ""

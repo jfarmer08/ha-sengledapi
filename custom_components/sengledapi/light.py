@@ -25,7 +25,7 @@ from homeassistant.components.light import (
 )
 
 # Add to support quicker update time. Is this to Fast?
-SCAN_INTERVAL = timedelta(seconds=5)
+SCAN_INTERVAL = timedelta(seconds=30)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -84,37 +84,34 @@ class SengledBulb(LightEntity):
             "state": self._state,
             "available": self._avaliable,
             "device model": self._device_model,
-            "device rssi": self._device_rssi,
+            "rssi": self._device_rssi,
             "mac": self._device_mac,
+            "brightness": self._brightness,
+            "colorTemp": self._color_temperature,
+            "color": self._color,
         }
 
     @property
     def color_temp(self):
         """Return the color_temp of the light."""
-        color_temp = int(self._color_temperature)
-        if color_temp is None:
-            return None
-        return colorutil.color_temperature_kelvin_to_mired(color_temp)
+        return colorutil.color_temperature_kelvin_to_mired(self._color_temperature)
 
     @property
     def hs_color(self):
         """Return the hs_color of the light."""
-        _LOGGER.debug("FARMER::::::: %s", str(self._color))
+        #_LOGGER.debug("FARMER::::::: %s", str(self._color))
         a, b, c = self._color.split(":")
-        _LOGGER.debug(a)
-        _LOGGER.debug(b)
-        _LOGGER.debug(c)
         return colorutil.color_RGB_to_hs(int(a), int(b), int(c))
 
-    #    @property
-    #    def min_mireds(self):
-    #        """Return color temperature min mireds."""
-    #        return colorutil.color_temperature_kelvin_to_mired(2000)
+        @property
+        def min_mireds(self):
+            """Return color temperature min mireds."""
+            return colorutil.color_temperature_kelvin_to_mired(6500)
 
-    #    @property
-    ##    def max_mireds(self):
-    #        """Return color temperature max mireds."""
-    #        return colorutil.color_temperature_kelvin_to_mired(6500)
+        @property
+        def max_mireds(self):
+            """Return color temperature max mireds."""
+            return colorutil.color_temperature_kelvin_to_mired(2000)
 
     @property
     def brightness(self):
@@ -137,27 +134,24 @@ class SengledBulb(LightEntity):
             features = SUPPORT_BRIGHTNESS
         if self._device_model == "wifia19":
             features = SUPPORT_BRIGHTNESS
+        if self._device_model == "E11-N1EA":
+            features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP
         return features
 
     async def async_turn_on(self, **kwargs):
         """Instruct the light to turn on. """
         """Turn on or control the light."""
-        if (
-            ATTR_BRIGHTNESS not in kwargs
-            and ATTR_HS_COLOR not in kwargs
-            and ATTR_COLOR_TEMP not in kwargs
-        ):
+        if (ATTR_BRIGHTNESS not in kwargs and ATTR_HS_COLOR not in kwargs and ATTR_COLOR_TEMP not in kwargs):
             await self._light.async_turn_on()
         if ATTR_BRIGHTNESS in kwargs:
-            await self._light.async_turn_on()
-            await self._light.set_brightness(kwargs[ATTR_BRIGHTNESS])
+            await self._light.async_set_brightness(kwargs[ATTR_BRIGHTNESS])
         if ATTR_HS_COLOR in kwargs:
-            self._light.set_color(kwargs[ATTR_HS_COLOR])
+            hs = kwargs.get(ATTR_HS_COLOR)
+            color = colorutil.color_hs_to_RGB(hs[0], hs[1])
+            await self._light.async_set_color(color)
         if ATTR_COLOR_TEMP in kwargs:
-            color_temp = colorutil.color_temperature_mired_to_kelvin(
-                kwargs[ATTR_COLOR_TEMP]
-            )
-            await self._light.set_color_temp(color_temp)
+            color_temp = colorutil.color_temperature_mired_to_kelvin(kwargs[ATTR_COLOR_TEMP])
+            await self._light.async_color_temperature(color_temp)
 
     async def async_turn_off(self, **kwargs):
         """Instruct the light to turn off."""

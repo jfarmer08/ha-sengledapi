@@ -42,26 +42,13 @@ class SengledBulbFloodMotion:
             "SengledApi: Bulb %s %s turning on.", self._friendly_name, self._device_mac
         )
 
-        if self._brightness is not None:
-            url = (
-                "https://"
-                + self._country
-                + "-elements.cloud.sengled.com/zigbee/device/deviceSetBrightness.json"
-            )
+        url = (
+            "https://"
+            + self._country
+            + "-elements.cloud.sengled.com/zigbee/device/deviceSetOnOff.json"
+        )
 
-            if self._brightness:
-                brightness = self._brightness
-
-            payload = {"deviceUuid": self._device_mac, "brightness": brightness}
-
-        else:
-            url = (
-                "https://"
-                + self._country
-                + "-elements.cloud.sengled.com/zigbee/device/deviceSetOnOff.json"
-            )
-
-            payload = {"deviceUuid": self._device_mac, "onoff": "1"}
+        payload = {"deviceUuid": self._device_mac, "onoff": "1"}
 
         loop = asyncio.get_running_loop()
         loop.create_task(self._api.async_do_request(url, payload, self._jsession_id))
@@ -69,10 +56,28 @@ class SengledBulbFloodMotion:
         self._state = True
         self._just_changed_state = True
 
+    async def async_set_brightness(self, brightness):
+        _LOGGER.debug(
+            "Bulb %s %s setting brightness.", self._friendly_name, self._device_mac
+        )
+        self._state = True
+        self._just_changed_state = True
+        url = (
+            "https://"
+            + self._country
+            + "-elements.cloud.sengled.com/zigbee/device/deviceSetBrightness.json"
+        )
+
+        payload = {"deviceUuid": self._device_mac, "brightness": brightness}
+
+        loop = asyncio.get_running_loop()
+        loop.create_task(self._api.async_do_request(url, payload, self._jsession_id))
+
     async def async_turn_off(self):
         _LOGGER.debug(
             "SengledApi: Bulb %s %s turning off.", self._friendly_name, self._device_mac
         )
+        self._just_changed_state = True
         url = (
             "https://"
             + self._country

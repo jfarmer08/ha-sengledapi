@@ -38,12 +38,13 @@ class SengledWifiColorBulb:
         self._avaliable = isonline
         self._just_changed_state = False
         self._device_model = device_model
-        self._brightness = int(brightness)
+        self._brightness = round((int(brightness) / 100) * 255)
         self._color_temperature = color_temperature
         self._color = color
         self._device_rssi = device_rssi
         self._jsession_id = jsession_id
         self._country = country
+
 
     async def async_turn_on(self):
         _LOGGER.debug(
@@ -66,47 +67,32 @@ class SengledWifiColorBulb:
         self._state = True
         self._just_changed_state = True
 
-    async def set_brightness(self, brightness):
+    async def async_set_brightness(self, brightness):
+        brightness_precentage = round((brightness / 255) * 100)
+
         _LOGGER.debug(
             "SengledApi: Wifi Color Bulb "
             + self._friendly_name
             + " "
             + self._device_mac
-            + " .Setting Brightness"
+            + " setting Brightness "
+            + str(brightness_precentage)
         )
-        _LOGGER.info("SengledApi: Turn on Brightness %s", self._brightness)
+
         data_brightness = {
             "dn": self._device_mac,
             "type": "brightness",
-            "value": brightness,
+            "value": str(brightness_precentage),
             "time": int(time.time() * 1000),
         }
+        self._state = True
+        self._just_changed_state = True
         self._api._publish_mqtt(
             "wifielement/{}/update".format(self._device_mac),
             json.dumps(data_brightness),
         )
 
-    async def set_color(self, color):
-        _LOGGER.debug(
-            "SengledApi: Wifi Color Bulb "
-            + self._friendly_name
-            + " "
-            + self._device_mac
-            + " .Setting Color"
-        )
-        # need to convert to RGB I think
-        _LOGGER.info("SengledApi: Turn on Brightness %s", color)
-        data_color = {
-            "dn": self._device_mac,
-            "type": "color",
-            "value": "255:255:0",
-            "time": int(time.time() * 1000),
-        }
-        self._api._publish_mqtt(
-            "wifielement/{}/update".format(self._device_mac), json.dumps(data_color),
-        )
-
-    async def set_color_temp(self, color_temp):
+    async def async_color_temperature(self, color_temp):
         _LOGGER.debug(
             "SengledApi: Wifi Color Bulb "
             + self._friendly_name
@@ -114,17 +100,47 @@ class SengledWifiColorBulb:
             + self._device_mac
             + " .Setting ColorTemp"
         )
+        _LOGGER.info("SengledApi: color Temp from HA %s", str(color_temp))
         # need to covert back to 0 -100
-        _LOGGER.info("SengledApi: Turn on Brightness %s", color_temp)
-        data_brightness = {
+        color_temperature_precentage = round(self.translate(int(color_temp), 2000, 6500, 1, 100))
+        _LOGGER.info("SengledApi: color Temp %s", color_temperature_precentage)
+        data_color_temperature = {
             "dn": self._device_mac,
-            "type": "color_temperature",
-            "value": 10,
+            "type": "colorTemperature",
+            "value": str(color_temperature_precentage),
             "time": int(time.time() * 1000),
         }
+        self._state = True
+        self._just_changed_state = True
         self._api._publish_mqtt(
             "wifielement/{}/update".format(self._device_mac),
-            json.dumps(data_brightness),
+            json.dumps(data_color_temperature),
+        )
+
+    async def async_set_color(self, color):
+        _LOGGER.debug(
+            "SengledApi: Wifi Color Bulb "
+            + self._friendly_name
+            + " "
+            + self._device_mac
+            + " .Setting Color"
+        )
+
+        mycolor = str(color)
+        for r in ((" ", ""), (",", ":"), ("(",""),(")","")):
+            mycolor = mycolor.replace(*r)
+
+        _LOGGER.info("SengledApi: Wifi Set Color %s", str(mycolor))
+        data_color = {
+            "dn": self._device_mac,
+            "type": "color",
+            "value": mycolor,
+            "time": int(time.time() * 1000),
+        }
+        self._state = True
+        self._just_changed_state = True
+        self._api._publish_mqtt(
+            "wifielement/{}/update".format(self._device_mac), json.dumps(data_color),
         )
 
     async def async_turn_off(self):
@@ -145,6 +161,8 @@ class SengledWifiColorBulb:
         self._api._publish_mqtt(
             "wifielement/{}/update".format(self._device_mac), json.dumps(data),
         )
+        self._state = False
+        self._just_changed_state = True
 
     def is_on(self):
         return self._state
@@ -174,17 +192,10 @@ class SengledWifiColorBulb:
             for items in bulbs:
                 if items.uuid == self._device_mac:
                     self._friendly_name = items.name
-                    self._brightness = items.brightness
+                    self._brightness = round((items.brightness / 100) * 255)
                     self._state = items.switch
                     self._avaliable = items.online
                     self._color_temperature = items.color_temperature
-                    _LOGGER.debug(
-                        "SengledApi: From Update brightness %s", items.brightness
-                    )
-                    _LOGGER.debug(
-                        "SengledApi: From Update color temp %s",
-                        items.color_temperature,
-                    )
 
     def translate(self, value, leftMin, leftMax, rightMin, rightMax):
         # Figure out how 'wide' each range is
