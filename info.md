@@ -27,11 +27,8 @@ You can find [Supported Products](https://github.com/jfarmer08/ha-sengledapi/wik
     2. Sengled Smart Wi-Fi LED Daylight A19 Bulb : wifia19
 
       # Supported Functions of Wifi Bulbs
-        1. View bulbs on/off state
-        2. Control bulbs on/off state
-        3. View Brightness
-        4. View Color Temp for supported bulbs
-        5. View Color for supported bulbs
+        1. View bulbs on/off state, brightness, Color, and Color Temp
+        2. Control bulbs on/off state, brightness, Color, and Color Temp
 
 ## Installation (HACS) - Highly Recommended
 
