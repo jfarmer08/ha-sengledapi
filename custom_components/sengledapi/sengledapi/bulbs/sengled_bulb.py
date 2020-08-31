@@ -8,19 +8,7 @@ _LOGGER.debug("SengledApi: Initializing Sengled Bulb")
 
 
 class SengledBulb:
-    def __init__(
-        self,
-        api,
-        device_mac,
-        friendly_name,
-        state,
-        device_model,
-        brightness,
-        device_rssi,
-        isonline,
-        jsession_id,
-        country,
-    ):
+    def __init__(self,api,device_mac,friendly_name,state,device_model,isonline,jsession_id,country,):
         _LOGGER.debug("SengledApi: Bulb %s initializing.", friendly_name)
 
         self._api = api
@@ -30,23 +18,20 @@ class SengledBulb:
         self._avaliable = isonline
         self._just_changed_state = False
         self._device_model = device_model
-        self._brightness = int(brightness)
+        self._device_rssi = None
+        self._brightness = None
         self._color = None
+        self._color_temperature = None
+        self._rgb_color_r = None
+        self._rgb_color_g = None
+        self._rgb_color_b = None
         self._jsession_id = jsession_id
         self._country = country
-        self._color_temperature = None
-        self._device_rssi = self.translate(int(device_rssi), 0, 5, 0, -100)
 
     async def async_turn_on(self):
-        _LOGGER.debug(
-            "SengledApi: Bulb %s %s turning on.", self._friendly_name, self._device_mac
-        )
+        _LOGGER.debug("SengledApi: Bulb %s %s turning on.", self._friendly_name, self._device_mac)
         self._just_changed_state = True
-        url = (
-            "https://"
-            + self._country
-            + "-elements.cloud.sengled.com/zigbee/device/deviceSetOnOff.json"
-        )
+        url = ("https://" + self._country + "-elements.cloud.sengled.com/zigbee/device/deviceSetOnOff.json")
 
         payload = {"deviceUuid": self._device_mac, "onoff": "1"}
 
@@ -57,9 +42,7 @@ class SengledBulb:
         self._just_changed_state = True
 
     async def async_set_brightness(self, brightness):
-        _LOGGER.debug(
-            "Bulb %s %s setting brightness.", self._friendly_name, self._device_mac
-        )
+        _LOGGER.debug("Bulb %s %s setting brightness.", self._friendly_name, self._device_mac)
         self._state = True
         self._just_changed_state = True
 
@@ -118,13 +101,11 @@ class SengledBulb:
                 for items in item["lampInfos"]:
                     if items["deviceUuid"] == self._device_mac:
                         self._friendly_name = items["attributes"]["name"]
+                        self._state = (True if int(items["attributes"]["onoff"]) == 1 else False)
+                        self._avaliable = (False if int(items["attributes"]["isOnline"]) == 0 else True)
+                        self._device_rssi = self.translate(int(items["attributes"]["deviceRssi"]), 0, 5, 0, -100)
+                        #Supported Features
                         self._brightness = int(items["attributes"]["brightness"])
-                        self._state = (
-                            True if int(items["attributes"]["onoff"]) == 1 else False
-                        )
-                        self._avaliable = (
-                            False if int(items["attributes"]["isOnline"]) == 0 else True
-                        )
 
     def translate(self, value, leftMin, leftMax, rightMin, rightMax):
         # Figure out how 'wide' each range is

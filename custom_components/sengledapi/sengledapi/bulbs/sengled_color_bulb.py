@@ -10,19 +10,7 @@ _LOGGER.debug("SengledApi: Initializing Sengled color Bulb")
 
 
 class SengledColorBulb:
-    def __init__(
-        self,
-        api,
-        device_mac,
-        friendly_name,
-        state,
-        device_model,
-        brightness,
-        device_rssi,
-        isonline,
-        jsession_id,
-        country,
-    ):
+    def __init__(self,api,device_mac,friendly_name,state,device_model,isonline,jsession_id,country,):
         _LOGGER.debug("SengledApi: Color Bulb %s initializing.", friendly_name)
 
         self._api = api
@@ -32,13 +20,17 @@ class SengledColorBulb:
         self._avaliable = True
         self._just_changed_state = False
         self._device_model = device_model
-        self._brightness = int(brightness)
         self._jsession_id = jsession_id
+        self._isonline = isonline
         self._country = country
+        self._device_rssi = None
+        #Support Features
+        self._brightness = None
         self._color_temperature = None
         self._color = None
-        self._device_rssi = device_rssi
-        self._isonline = isonline
+        self._rgb_color_r = None
+        self._rgb_color_g = None
+        self._rgb_color_b = None
 
     async def async_turn_on(self):
         _LOGGER.debug("Bulb %s %s turning on.", self._friendly_name, self._device_mac)
@@ -77,14 +69,52 @@ class SengledColorBulb:
         _LOGGER.debug(
             "Bulb %s %s changing color.", self._friendly_name, self._device_mac
         )
+
+        _LOGGER.info("SengledApi: color Temp from HA %s", str(colorTemperature))
+        color_temperature_precentage = round(self.translate(int(colorTemperature), 2000, 6500, 1, 100))
+        _LOGGER.info("SengledApi: color Temp %s", color_temperature_precentage)
+
         self._just_changed_state = True
         url = (
             "https://"
             + self._country
-            + "-elements.cloud.sengled.com/zigbee/device/deviceSetColorTemperature.json"
+            + "-elements.cloud.sengled.com/zigbee/device/deviceSet/ColorTemperature.json"
         )
 
-        payload = {"deviceUuid": self._device_mac, "colorTemperature": colorTemperature}
+        self._state = True
+        self._just_changed_state = True
+
+        loop = asyncio.get_running_loop()
+        loop.create_task(self._api.async_do_request(url, payload, self._jsession_id))
+
+    async def async_set_color(self, color):
+        """
+        Set the color of a light device.
+        device_id: A single device ID or a list to update multiple at once
+        color: [red(0-255), green(0-255), blue(0-255)]
+        """
+        _LOGGER.debug(
+            "SengledApi: Wifi Color Bulb "
+            + self._friendly_name
+            + " "
+            + self._device_mac
+            + " .Setting Color"
+        )
+
+        mycolor = str(color)
+        for r in ((" ", ""), (",", ":"), ("(",""),(")","")):
+            mycolor = mycolor.replace(*r)
+        a, b, c = self.mycolor.split(":")
+        _LOGGER.info("SengledApi: Wifi Set Color R %s G %s B %s", int(a), int(b), int(c))
+
+        self._just_changed_state = True
+        url = (
+            "https://"
+            + self._country
+            + "-elements.cloud.sengled.com/zigbee/device/deviceSetGroup.json"
+        )
+
+        payload = {129, {"deviceUuidList": self._device_mac}, {"rgbColorR": int(a), "rgbColorG": int(b), "rgbColorB": int(c),}}
 
         self._state = True
         self._just_changed_state = True
@@ -129,10 +159,28 @@ class SengledColorBulb:
             for item in data["deviceInfos"]:
                 for items in item["lampInfos"]:
                     self._friendly_name = items["attributes"]["name"]
-                    self._brightness = int(items["attributes"]["brightness"])
                     self._state = (
                         True if int(items["attributes"]["onoff"]) == 1 else False
                     )
                     self._avaliable = (
                         False if int(items["attributes"]["isOnline"]) == 0 else True
                     )
+                    self._device_rssi = self.translate(int(items["attributes"]["deviceRssi"]), 0, 5, 0, -100)
+                    #Supported Features
+                    self._brightness = int(items["attributes"]["brightness"])
+                    self._color_temperature = round(self.translate(int(items["attributes"]["colorTemperature"])), 0, 100, 2000, 6500)
+                    self._rgb_color_r = int(items["attributes"]["rgbColorR"])
+                    self._rgb_color_g = int(items["attributes"]["rgbColorG"])
+                    self._rgb_color_b = int(items["attributes"]["rgbColorB"])
+
+    def translate(self, value, leftMin, leftMax, rightMin, rightMax):
+        # Figure out how 'wide' each range is
+        leftSpan = leftMax - leftMin
+        rightSpan = rightMax - rightMin
+
+        # Convert the left range into a 0-1 range (float)
+        valueScaled = float(value - leftMin) / float(leftSpan)
+
+        # Convert the 0-1 range into a value in the right range.
+        return rightMin + (valueScaled * rightSpan)
+

@@ -15,8 +15,6 @@ class SengledBulbFloodMotion:
         friendly_name,
         state,
         device_model,
-        brightness,
-        device_rssi,
         isonline,
         jsession_id,
         country,
@@ -30,12 +28,16 @@ class SengledBulbFloodMotion:
         self._avaliable = isonline
         self._just_changed_state = False
         self._device_model = device_model
-        self._brightness = int(brightness)
+        self._brightness = None
         self._jsession_id = jsession_id
         self._country = country
         self._color_temperature = None
         self._color = None
-        self._device_rssi = self.translate(int(device_rssi), 0, 5, 0, -100)
+        self._device_rssi = None
+        self._rgb_color_r = None
+        self._rgb_color_g = None
+        self._rgb_color_b = None
+
 
     async def async_turn_on(self):
         _LOGGER.debug(
@@ -117,13 +119,15 @@ class SengledBulbFloodMotion:
                 for items in item["lampInfos"]:
                     if items["deviceUuid"] == self._device_mac:
                         self._friendly_name = items["attributes"]["name"]
-                        self._brightness = int(items["attributes"]["brightness"])
                         self._state = (
                             True if int(items["attributes"]["onoff"]) == 1 else False
                         )
                         self._avaliable = (
                             False if int(items["attributes"]["isOnline"]) == 0 else True
                         )
+                        self._device_rssi = self.translate(int(items["attributes"]["deviceRssi"]), 0, 5, 0, -100)
+                        #Support Features
+                        self._brightness = int(items["attributes"]["brightness"])
 
     def translate(self, value, leftMin, leftMax, rightMin, rightMax):
         # Figure out how 'wide' each range is

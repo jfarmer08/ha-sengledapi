@@ -185,7 +185,7 @@ class SengledApi:
                         found = True
                         break
                 if not found:
-                    # _LOGGER.debug("get devices %s", d)
+                    _LOGGER.debug("get devices %s", d)
                     self._all_wifi_devices.append(SengledWifiBulbProperty(self, d))
         return self._all_wifi_devices
 
@@ -208,7 +208,7 @@ class SengledApi:
             _LOGGER.debug(device)
             if "lampInfos" in device:
                 for light in device["lampInfos"]:
-                    if (light["attributes"]["productCode"] == "E11-G13"):  # Sengled Soft White A19 Bulb
+                    if (light["attributes"]["productCode"] == "E11-G13" or "E13-N11" or "E11-G14"):
                         bulbs.append(
                             SengledBulb(
                                 self,
@@ -216,23 +216,6 @@ class SengledApi:
                                 light["attributes"]["name"],
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
-                                light["attributes"]["isOnline"],
-                                self._jsession_id,
-                                self._country,
-                            )
-                        )
-                    if (light["attributes"]["productCode"] == "E11-G14"):  # Sengled Daylight A19 Bulb
-                        bulbs.append(
-                            SengledBulb(
-                                self,
-                                light["deviceUuid"],
-                                light["attributes"]["name"],
-                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
-                                light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
                                 light["attributes"]["isOnline"],
                                 self._jsession_id,
                                 self._country,
@@ -246,8 +229,6 @@ class SengledApi:
                                 light["attributes"]["name"],
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
                                 light["attributes"]["isOnline"],
                                 self._jsession_id,
                                 self._country,
@@ -261,8 +242,6 @@ class SengledApi:
                                 light["attributes"]["name"],
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
                                 light["attributes"]["isOnline"],
                                 self._jsession_id,
                                 self._country,
@@ -276,8 +255,6 @@ class SengledApi:
                                 light["attributes"]["name"],
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
                                 light["attributes"]["isOnline"],
                                 self._jsession_id,
                                 self._country,
@@ -291,28 +268,12 @@ class SengledApi:
                                 light["attributes"]["name"],
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
                                 light["attributes"]["isOnline"],
                                 self._jsession_id,
                                 self._country,
                             )
                         )
-                    if (light["attributes"]["productCode"] == "E13-N11"):  # Sengled Motion Sensor PAR38 Bulb
-                        bulbs.append(
-                            SengledBulbFloodMotion(
-                                self,
-                                light["deviceUuid"],
-                                light["attributes"]["name"],
-                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
-                                light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
-                                light["attributes"]["isOnline"],
-                                self._jsession_id,
-                                self._country,
-                            )
-                        )
+
                     if (
                         light["attributes"]["productCode"] == "Z01-CIA19NAE26"
                     ):  # Sengled Element Touch A19 E26
@@ -323,8 +284,6 @@ class SengledApi:
                                 light["attributes"]["name"],
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
                                 light["attributes"]["isOnline"],
                                 self._jsession_id,
                                 self._country,
@@ -340,8 +299,6 @@ class SengledApi:
                                 light["attributes"]["name"],
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
                                 light["attributes"]["isOnline"],
                                 self._jsession_id,
                                 self._country,
@@ -357,8 +314,6 @@ class SengledApi:
                                 light["attributes"]["name"],
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
                                 light["attributes"]["isOnline"],
                                 self._jsession_id,
                                 self._country,
@@ -374,8 +329,6 @@ class SengledApi:
                                 light["attributes"]["name"],
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
                                 light["attributes"]["isOnline"],
                                 self._jsession_id,
                                 self._country,
@@ -391,8 +344,6 @@ class SengledApi:
                                 light["attributes"]["name"],
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
                                 light["attributes"]["isOnline"],
                                 self._jsession_id,
                                 self._country,
@@ -408,8 +359,6 @@ class SengledApi:
                                 light["attributes"]["name"],
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
                                 light["attributes"]["isOnline"],
                                 self._jsession_id,
                                 self._country,
@@ -425,8 +374,6 @@ class SengledApi:
                                 light["attributes"]["name"],
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
                                 light["attributes"]["isOnline"],
                                 self._jsession_id,
                                 self._country,
@@ -442,8 +389,6 @@ class SengledApi:
                                 light["attributes"]["name"],
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
                                 light["attributes"]["isOnline"],
                                 self._jsession_id,
                                 self._country,
@@ -459,8 +404,6 @@ class SengledApi:
                                 light["attributes"]["name"],
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
                                 light["attributes"]["isOnline"],
                                 self._jsession_id,
                                 self._country,
@@ -476,8 +419,6 @@ class SengledApi:
                                 light["attributes"]["name"],
                                 ("on" if light["attributes"]["onoff"] == 1 else "off"),
                                 light["attributes"]["productCode"],
-                                light["attributes"]["brightness"],
-                                light["attributes"]["deviceRssi"],
                                 light["attributes"]["isOnline"],
                                 self._jsession_id,
                                 self._country,
@@ -486,10 +427,6 @@ class SengledApi:
         if self._wifi:
             for devicebulb in await self.get_devices():
                 if devicebulb.type_code == "wificolora19":
-                    _LOGGER.debug("SengledAPI: uuid " + devicebulb.uuid)
-                    _LOGGER.debug(
-                        "SengledAPI: brightness " + str(devicebulb.brightness)
-                    )
                     bulbs.append(
                         SengledWifiColorBulb(
                             self,
@@ -497,11 +434,6 @@ class SengledApi:
                             devicebulb.name,
                             devicebulb.switch,
                             devicebulb.type_code,
-                            devicebulb.brightness,
-                            devicebulb.color,
-                            devicebulb.color_mode,
-                            devicebulb.color_temperature,
-                            devicebulb.device_rssi,
                             devicebulb.online,
                             self._jsession_id,
                             self._country,
@@ -515,8 +447,6 @@ class SengledApi:
                             devicebulb.name,
                             devicebulb.switch,
                             devicebulb.type_code,
-                            devicebulb.brightness,
-                            devicebulb.device_rssi,
                             devicebulb.online,
                             self._jsession_id,
                             self._country,

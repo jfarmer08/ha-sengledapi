@@ -5,7 +5,6 @@ import logging
 import time
 import json
 
-from .sengled_request import SengledRequest
 from .sengled_wifi_bulb_property import SengledWifiBulbProperty
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,11 +19,6 @@ class SengledWifiColorBulb:
         friendly_name,
         state,
         device_model,
-        brightness,
-        color,
-        color_mode,
-        color_temperature,
-        device_rssi,
         isonline,
         jsession_id,
         country,
@@ -38,12 +32,15 @@ class SengledWifiColorBulb:
         self._avaliable = isonline
         self._just_changed_state = False
         self._device_model = device_model
-        self._brightness = round((int(brightness) / 100) * 255)
-        self._color_temperature = color_temperature
-        self._color = color
-        self._device_rssi = device_rssi
         self._jsession_id = jsession_id
-        self._country = country
+        self._device_rssi = None
+        self._country = None
+        self._brightness = None
+        self._color_temperature = None
+        self._color = None
+        self._rgb_color_r = None
+        self._rgb_color_g = None
+        self._rgb_color_b = None
 
 
     async def async_turn_on(self):
@@ -92,7 +89,7 @@ class SengledWifiColorBulb:
             json.dumps(data_brightness),
         )
 
-    async def async_color_temperature(self, color_temp):
+    async def async_color_temperature(self, colorTemperature):
         _LOGGER.debug(
             "SengledApi: Wifi Color Bulb "
             + self._friendly_name
@@ -100,9 +97,8 @@ class SengledWifiColorBulb:
             + self._device_mac
             + " .Setting ColorTemp"
         )
-        _LOGGER.info("SengledApi: color Temp from HA %s", str(color_temp))
-        # need to covert back to 0 -100
-        color_temperature_precentage = round(self.translate(int(color_temp), 2000, 6500, 1, 100))
+        _LOGGER.info("SengledApi: color Temp from HA %s", str(colorTemperature))
+        color_temperature_precentage = round(self.translate(int(colorTemperature), 2000, 6500, 1, 100))
         _LOGGER.info("SengledApi: color Temp %s", color_temperature_precentage)
         data_color_temperature = {
             "dn": self._device_mac,
@@ -182,9 +178,8 @@ class SengledWifiColorBulb:
             url = "https://life2.cloud.sengled.com/life2/device/list.json"
             payload = {}
 
-            data = await SengledRequest(url, payload).async_get_response(
-                self._jsession_id
-            )
+            data = await self._api.async_do_request(url, payload, self._jsession_id)
+
             _LOGGER.info("SengledApi: Wifi Bulb " + self._friendly_name + " updating.")
             for item in data["deviceList"]:
                 # _LOGGER.debug("SengledApi: Wifi Bulb update return " + str(item))
@@ -192,10 +187,13 @@ class SengledWifiColorBulb:
             for items in bulbs:
                 if items.uuid == self._device_mac:
                     self._friendly_name = items.name
-                    self._brightness = round((items.brightness / 100) * 255)
                     self._state = items.switch
                     self._avaliable = items.online
+                    self._device_rssi = items.device_rssi
+                    #Supported Features
+                    self._brightness = round((items.brightness / 100) * 255)
                     self._color_temperature = items.color_temperature
+                    self._color = items.color
 
     def translate(self, value, leftMin, leftMax, rightMin, rightMax):
         # Figure out how 'wide' each range is
@@ -207,3 +205,9 @@ class SengledWifiColorBulb:
 
         # Convert the 0-1 range into a value in the right range.
         return rightMin + (valueScaled * rightSpan)
+    def max_kelvin(self):
+        _LOGGER.debug("SengledApi: Max Kelvin")
+        return 2000
+    def min_kelvin(self):
+        _LOGGER.debug("SengledApi: Max Kelvin")
+        return 6500

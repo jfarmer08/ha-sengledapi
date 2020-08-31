@@ -60,6 +60,9 @@ class SengledBulb(LightEntity):
         self._color_temperature = light._color_temperature
         self._color = light._color
         self._device_rssi = light._device_rssi
+        self._rgb_color_r = light._rgb_color_r
+        self._rgb_color_g = light._rgb_color_g
+        self._rgb_color_b = light._rgb_color_b
 
     @property
     def name(self):
@@ -86,9 +89,6 @@ class SengledBulb(LightEntity):
             "device model": self._device_model,
             "rssi": self._device_rssi,
             "mac": self._device_mac,
-            "brightness": self._brightness,
-            "colorTemp": self._color_temperature,
-            "color": self._color,
         }
 
     @property
@@ -99,9 +99,12 @@ class SengledBulb(LightEntity):
     @property
     def hs_color(self):
         """Return the hs_color of the light."""
-        #_LOGGER.debug("FARMER::::::: %s", str(self._color))
-        a, b, c = self._color.split(":")
-        return colorutil.color_RGB_to_hs(int(a), int(b), int(c))
+        if self._device_model == "wificolora19":
+            a, b, c = self._color.split(":")
+            return colorutil.color_RGB_to_hs(int(a), int(b), int(c))
+        if self._device_model == "E11-N1EA":
+            return colorutil.color_RGB_to_hs(self._rgb_color_r,self._rgb_color_g,self._rgb_color_b)
+        return ''
 
         @property
         def min_mireds(self):
@@ -115,11 +118,7 @@ class SengledBulb(LightEntity):
 
     @property
     def brightness(self):
-        """Return the brightness of the light.
-
-        This method is optional. Removing it indicates to Home Assistant
-        that brightness is not supported for this light.
-        """
+        """Return the brightness of the light."""
         return self._brightness
 
     @property
@@ -135,7 +134,7 @@ class SengledBulb(LightEntity):
         if self._device_model == "wifia19":
             features = SUPPORT_BRIGHTNESS
         if self._device_model == "E11-N1EA":
-            features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP
+            features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP | SUPPORT_COLOR
         return features
 
     async def async_turn_on(self, **kwargs):
@@ -167,3 +166,13 @@ class SengledBulb(LightEntity):
         self._brightness = self._light._brightness
         self._color_temperature = self._light._color_temperature
         self._color = self._light._color
+
+    @property
+    def device_info(self):
+        """Return the device info."""
+        return {
+            "name": self._name,
+            "identifiers": {(DOMAIN, self._device_mac)},
+            "model": self._device_model,
+            "manufacturer": "Sengled",
+        }
