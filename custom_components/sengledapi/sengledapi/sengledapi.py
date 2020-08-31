@@ -208,7 +208,7 @@ class SengledApi:
             _LOGGER.debug(device)
             if "lampInfos" in device:
                 for light in device["lampInfos"]:
-                    if (light["attributes"]["productCode"] == "E11-G13" or "E13-N11" or "E11-G14"):
+                    if (light["attributes"]["productCode"] == "E11-G13"):
                         bulbs.append(
                             SengledBulb(
                                 self,
@@ -221,7 +221,33 @@ class SengledApi:
                                 self._country,
                             )
                         )
+                    if (light["attributes"]["productCode"] == "E13-N11"):  # Sengled Element Classic A60 B22
+                        bulbs.append(
+                            SengledBulbFloodMotion(
+                                self,
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["isOnline"],
+                                self._jsession_id,
+                                self._country,
+                            )
+                        )
                     if (light["attributes"]["productCode"] == "E11-G33"):  # Sengled Element Classic A60 B22
+                        bulbs.append(
+                            SengledBulb(
+                                self,
+                                light["deviceUuid"],
+                                light["attributes"]["name"],
+                                ("on" if light["attributes"]["onoff"] == 1 else "off"),
+                                light["attributes"]["productCode"],
+                                light["attributes"]["isOnline"],
+                                self._jsession_id,
+                                self._country,
+                            )
+                        )
+                    if (light["attributes"]["productCode"] == "E11-G14"):  # Sengled Element
                         bulbs.append(
                             SengledBulb(
                                 self,
@@ -591,6 +617,7 @@ class SengledApi:
             return False
 
         r = self._mqtt_client.subscribe(topic)
+        _LOGGER.debug("SengledApi: Subscribe Mqtt %s", str(r))
         if r[0] != mqtt.MQTT_ERR_SUCCESS:
             return False
 

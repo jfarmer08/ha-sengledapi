@@ -41,7 +41,9 @@ class SengledWifiColorBulb:
         self._rgb_color_r = None
         self._rgb_color_g = None
         self._rgb_color_b = None
+        self._colorMode = None
 
+        self._api._subscribe_mqtt('wifielement/{}/status'.format(self._device_mac),self._update_status,)
 
     async def async_turn_on(self):
         _LOGGER.debug(
@@ -61,6 +63,7 @@ class SengledWifiColorBulb:
         self._api._publish_mqtt(
             "wifielement/{}/update".format(self._device_mac), json.dumps(data),
         )
+
         self._state = True
         self._just_changed_state = True
 
@@ -194,6 +197,53 @@ class SengledWifiColorBulb:
                     self._brightness = round((items.brightness / 100) * 255)
                     self._color_temperature = items.color_temperature
                     self._color = items.color
+
+
+    def _update_status(self, message):
+        """
+        Update the status from an incoming MQTT message.
+        message -- the incoming message
+        """
+        try:
+            data = json.loads(message)
+            _LOGGER.debug("SengledAPI: Farmer Update Status from MQTT %s", str(data))
+        except ValueError:
+            return
+
+        for status in data:
+            if 'type' not in status or 'dn' not in status:
+                continue
+
+            if status['dn'] == self._device_mac:
+                if status['type'] == "color":
+                    self._color = status['value']
+                    _LOGGER.debug(str(self._color))
+                if status['type'] == "colorMode":
+                    self._color_mode = status['value']
+
+
+    def set_attribute_update_callback(self, callback):
+        """
+        Set the callback to be called when an attribute is updated.
+        callback -- callback
+        """
+        self._attribute_update_callback = callback
+
+    @staticmethod
+    def _attribute_to_property(attr):
+        attr_map = {
+            'consumptionTime': 'consumption_time',
+            'deviceRssi': 'rssi',
+            'identifyNO': 'identify_no',
+            'productCode': 'product_code',
+            'saveFlag': 'save_flag',
+            'startTime': 'start_time',
+            'supportAttributes': 'support_attributes',
+            'timeZone': 'time_zone',
+            'typeCode': 'type_code',
+        }
+
+        return attr_map.get(attr, attr)
 
     def translate(self, value, leftMin, leftMax, rightMin, rightMax):
         # Figure out how 'wide' each range is
