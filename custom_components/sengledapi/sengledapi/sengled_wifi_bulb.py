@@ -20,8 +20,6 @@ class SengledWifiBulb:
         friendly_name,
         state,
         device_model,
-        brightness,
-        device_rssi,
         isonline,
         jsession_id,
         country,
@@ -35,12 +33,16 @@ class SengledWifiBulb:
         self._avaliable = isonline
         self._just_changed_state = False
         self._device_model = device_model
-        self._brightness = int(brightness)
+        self._brightness = None
         self._color_temperature = None
         self._color = None
-        self._device_rssi = device_rssi
+        self._rgb_color_r = None
+        self._rgb_color_g = None
+        self._rgb_color_b = None
+        self._device_rssi = None
         self._jsession_id = jsession_id
         self._country = country
+
 
     async def async_turn_on(self):
         _LOGGER.debug(
@@ -132,14 +134,16 @@ class SengledWifiBulb:
             )
             _LOGGER.info("SengledApi: Wifi Bulb " + self._friendly_name + " updating.")
             for item in data["deviceList"]:
-                # _LOGGER.debug("SengledApi: Wifi Bulb update return " + str(item))
+                _LOGGER.debug("SengledApi: Wifi Bulb update return " + str(item))
                 bulbs.append(SengledWifiBulbProperty(self, item))
             for items in bulbs:
                 if items.uuid == self._device_mac:
                     self._friendly_name = items.name
-                    self._brightness = round((items.brightness / 100) * 255)
                     self._state = items.switch
                     self._avaliable = items.online
+                    self._device_rssi = items.device_rssi
+                    #Supported Features
+                    self._brightness = round((items.brightness / 100) * 255)
 
     def translate(self, value, leftMin, leftMax, rightMin, rightMax):
         # Figure out how 'wide' each range is
