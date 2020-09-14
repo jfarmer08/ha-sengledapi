@@ -220,6 +220,10 @@ class SengledWifiColorBulb:
                     _LOGGER.debug(str(self._color))
                 if status['type'] == "colorMode":
                     self._color_mode = status['value']
+                if status['type'] == "brightness":
+                    self._brightness = status['value']
+                if status['type'] == "colorTemperature":
+                    self._color_temperature = status['value']
 
 
     def set_attribute_update_callback(self, callback):

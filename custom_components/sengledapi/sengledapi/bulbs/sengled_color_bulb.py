@@ -26,7 +26,7 @@ class SengledColorBulb:
         self._device_rssi = None
         #Support Features
         self._brightness = None
-        self._color_temperature = None
+        self._color_temperature = 2000
         self._color = None
         self._rgb_color_r = None
         self._rgb_color_g = None
@@ -98,7 +98,7 @@ class SengledColorBulb:
         mycolor = str(color)
         for r in ((" ", ""), (",", ":"), ("(",""),(")","")):
             mycolor = mycolor.replace(*r)
-        a, b, c = self.mycolor.split(":")
+        a, b, c = mycolor.split(":")
         _LOGGER.info("SengledApi: Set Color R %s G %s B %s", int(a), int(b), int(c))
 
         self._just_changed_state = True
@@ -108,7 +108,7 @@ class SengledColorBulb:
             + "-elements.cloud.sengled.com/zigbee/device/deviceSetGroup.json"
         )
 
-        payload = {129, {"deviceUuidList": self._device_mac}, {"rgbColorR": int(a), "rgbColorG": int(b), "rgbColorB": int(c),}}
+        payload = {"cmdId": 129,"deviceUuidList": [{"deviceUuid": self._device_mac}],"rgbColorR": int(a),"rgbColorG": int(b),"rgbColorB": int(c)}
 
         self._state = True
         self._just_changed_state = True
@@ -157,7 +157,7 @@ class SengledColorBulb:
                         self._device_rssi = self.translate(int(items["attributes"]["deviceRssi"]), 0, 5, 0, -100)
                         #Supported Features
                         self._brightness = int(items["attributes"]["brightness"])
-                        self._color_temperature = round(self.translate(int(items["attributes"]["colorTemperature"])), 0, 100, 2000, 6500)
+                        self._color_temperature = round(self.translate(int(items["attributes"]["colorTemperature"]), 0, 100, 2000, 6500))
                         self._rgb_color_r = int(items["attributes"]["rgbColorR"])
                         self._rgb_color_g = int(items["attributes"]["rgbColorG"])
                         self._rgb_color_b = int(items["attributes"]["rgbColorB"])

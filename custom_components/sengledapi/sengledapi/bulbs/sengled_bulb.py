@@ -21,7 +21,7 @@ class SengledBulb:
         self._device_rssi = None
         self._brightness = None
         self._color = None
-        self._color_temperature = None
+        self._color_temperature = 2000
         self._rgb_color_r = None
         self._rgb_color_g = None
         self._rgb_color_b = None
