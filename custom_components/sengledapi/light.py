@@ -102,7 +102,15 @@ class SengledBulb(LightEntity):
         if self._device_model == "wificolora19":
             a, b, c = self._color.split(":")
             return colorutil.color_RGB_to_hs(int(a), int(b), int(c))
-        if self._device_model == "E11-N1EA" or "E11-U2E" or "E11-U3E" or "E1G-G8E" or "E12-N1E":
+        if self._device_model == "E11-N1EA":
+            return colorutil.color_RGB_to_hs(self._rgb_color_r,self._rgb_color_g,self._rgb_color_b)
+        if self._device_model == "E11-U2E":
+            return colorutil.color_RGB_to_hs(self._rgb_color_r,self._rgb_color_g,self._rgb_color_b)
+        if self._device_model == "E11-U3E":
+            return colorutil.color_RGB_to_hs(self._rgb_color_r,self._rgb_color_g,self._rgb_color_b)
+        if self._device_model == "E1G-G8E":
+            return colorutil.color_RGB_to_hs(self._rgb_color_r,self._rgb_color_g,self._rgb_color_b)
+        if self._device_model == "E12-N1E":
             return colorutil.color_RGB_to_hs(self._rgb_color_r,self._rgb_color_g,self._rgb_color_b)
         return ''
 
@@ -128,12 +136,18 @@ class SengledBulb(LightEntity):
 
     @property
     def supported_features(self):
-        features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP | SUPPORT_COLOR
-        if self._device_model != "wificolora19":
-            features = SUPPORT_BRIGHTNESS
-        if self._device_model == "wifia19":
-            features = SUPPORT_BRIGHTNESS
-        if self._device_model == "E11-N1EA" or "E11-U2E" or "E11-U3E" or "E1G-G8E" or "E12-N1E":
+        features = SUPPORT_BRIGHTNESS
+        if self._device_model == "wificolora19":
+            features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP | SUPPORT_COLOR
+        if self._device_model == "E11-N1EA":
+            features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP | SUPPORT_COLOR
+        if self._device_model == "E11-U2E":
+            features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP | SUPPORT_COLOR
+        if self._device_model == "E11-U3E":
+            features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP | SUPPORT_COLOR
+        if self._device_model == "E1G-G8E":
+            features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP | SUPPORT_COLOR
+        if self._device_model == "E12-N1E":
             features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP | SUPPORT_COLOR
         return features
 

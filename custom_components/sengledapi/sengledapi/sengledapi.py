@@ -61,7 +61,7 @@ class SengledApi:
         _LOGGER.debug("Sengledapi: async_login")
 
         if self._jsession_id:
-            if not self._is_session_timeout():
+            if not self.async_is_session_timeout():
                 return
 
         url = "https://ucenter.cloud.sengled.com/user/app/customer/v2/AuthenCross.json"
@@ -84,7 +84,7 @@ class SengledApi:
         self._jsession_id = data["jsessionId"]
 
         if self._wifi:
-            await self._async_get_server_info()
+            await self.async_get_server_info()
 
             if not self._mqtt_client:
                 _LOGGER.debug(
@@ -104,12 +104,12 @@ class SengledApi:
             return False
         return True
 
-    async def _is_session_timeout(self):
+    async def async_is_session_timeout(self):
         """
         Determine whether or not the session has timed out.
         Returns True if timed out, False otherwise.
         """
-        _LOGGER.debug("SengledApi: _is_session_timeout")
+        _LOGGER.debug("SengledApi: async_is_session_timeout")
 
         if not self._jsession_id:
             return True
@@ -123,14 +123,14 @@ class SengledApi:
 
         data = await self.async_do_is_session_timeout_request(url, payload)
 
-        _LOGGER.debug("SengledApi: _is_session_timeout " + str(data))
+        _LOGGER.debug("SengledApi: async_is_session_timeout " + str(data))
 
         if "info" not in data or data["info"] != "OK":
             return True
 
         return False
 
-    async def _async_get_server_info(self):
+    async def async_get_server_info(self):
         """Get secondary server info from the primary."""
         if not self._jsession_id:
             _LOGGER.debug("SengledApi: Access token is null")
@@ -155,7 +155,7 @@ class SengledApi:
             self._mqtt_server["path"] = url.path
         _LOGGER.debug("SengledApi: Parese MQTT Server Info" + str(url))
 
-    async def get_devices(self):
+    async def async_get_wifi_devices(self):
         """
         Get list of Wifi connected devices.
         """
@@ -418,7 +418,7 @@ class SengledApi:
                             )
                         )
         if self._wifi:
-            for devicebulb in await self.get_devices():
+            for devicebulb in await self.async_get_wifi_devices():
                 _LOGGER.debug("SengledApi: List Wifi Device return %s", devicebulb)
                 if devicebulb.type_code == "wificolora19":
                     bulbs.append(
