@@ -62,7 +62,7 @@ async def async_setup(hass, config):
         _LOGGER.debug("SengledApi Connected to Sengled account")
 
         sengledapi_devices = await sengledapi_account.async_get_devices()
-        sengledapiwifi_devices = await sengledapi_account.get_devices()
+        sengledapiwifi_devices = await sengledapi_account.async_get_wifi_devices()
 
         # Store the logged in account object for the platforms to use.
         _LOGGER.debug(

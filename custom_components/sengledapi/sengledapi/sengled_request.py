@@ -19,7 +19,6 @@ class SengledRequest:
         self._payload = json.dumps(payload)
         self._no_return = no_return
         self._response = None
-        # self._access_token = None
         self._jsession_id = None
 
         self._header = {
