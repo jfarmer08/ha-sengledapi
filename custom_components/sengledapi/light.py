@@ -102,7 +102,7 @@ class SengledBulb(LightEntity):
         if self._device_model == "wificolora19":
             a, b, c = self._color.split(":")
             return colorutil.color_RGB_to_hs(int(a), int(b), int(c))
-        if self._device_model == "E11-N1EA":
+        if self._device_model == "E11-N1EA" or "E11-U2E" or "E11-U3E" or "E1G-G8E" or "E12-N1E":
             return colorutil.color_RGB_to_hs(self._rgb_color_r,self._rgb_color_g,self._rgb_color_b)
         return ''
 
@@ -133,7 +133,7 @@ class SengledBulb(LightEntity):
             features = SUPPORT_BRIGHTNESS
         if self._device_model == "wifia19":
             features = SUPPORT_BRIGHTNESS
-        if self._device_model == "E11-N1EA":
+        if self._device_model == "E11-N1EA" or "E11-U2E" or "E11-U3E" or "E1G-G8E" or "E12-N1E":
             features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP | SUPPORT_COLOR
         return features
 

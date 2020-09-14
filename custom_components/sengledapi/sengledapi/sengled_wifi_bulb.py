@@ -134,7 +134,7 @@ class SengledWifiBulb:
             )
             _LOGGER.info("SengledApi: Wifi Bulb " + self._friendly_name + " updating.")
             for item in data["deviceList"]:
-                # _LOGGER.debug("SengledApi: Wifi Bulb update return " + str(item))
+                _LOGGER.debug("SengledApi: Wifi Bulb update return " + str(item))
                 bulbs.append(SengledWifiBulbProperty(self, item))
             for items in bulbs:
                 if items.uuid == self._device_mac:

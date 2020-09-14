@@ -202,11 +202,11 @@ class SengledWifiColorBulb:
     def _update_status(self, message):
         """
         Update the status from an incoming MQTT message.
-        message -- the incoming message
+        message -- the incoming message. This is not used.
         """
         try:
             data = json.loads(message)
-            _LOGGER.debug("SengledAPI: Farmer Update Status from MQTT %s", str(data))
+            _LOGGER.debug("SengledApi: Update Status from MQTT %s", str(data))
         except ValueError:
             return
 
