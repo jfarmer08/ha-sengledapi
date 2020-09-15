@@ -31,12 +31,12 @@ class SengledBulbFloodMotion:
         self._brightness = None
         self._jsession_id = jsession_id
         self._country = country
-        self._color_temperature = None
-        self._color = None
-        self._device_rssi = None
-        self._rgb_color_r = None
-        self._rgb_color_g = None
-        self._rgb_color_b = None
+        self._color_temperature = 0
+        self._color = 0
+        self._device_rssi = 0
+        self._rgb_color_r = 0
+        self._rgb_color_g = 0
+        self._rgb_color_b = 0
 
     async def async_turn_on(self):
         _LOGGER.debug(

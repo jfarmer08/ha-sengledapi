@@ -35,13 +35,13 @@ class SengledWifiColorBulb:
         self._jsession_id = jsession_id
         self._device_rssi = None
         self._country = None
-        self._brightness = None
-        self._color_temperature = None
-        self._color = None
-        self._rgb_color_r = None
-        self._rgb_color_g = None
-        self._rgb_color_b = None
-        self._colorMode = None
+        self._brightness = 0
+        self._color_temperature = 0
+        self._color = 0
+        self._rgb_color_r = 0
+        self._rgb_color_g = 0
+        self._rgb_color_b = 0
+        self._colorMode = 0
 
         self._api._subscribe_mqtt('wifielement/{}/status'.format(self._device_mac),self._update_status,)
 
@@ -217,14 +217,12 @@ class SengledWifiColorBulb:
             if status['dn'] == self._device_mac:
                 if status['type'] == "color":
                     self._color = status['value']
-                    _LOGGER.debug(str(self._color))
                 if status['type'] == "colorMode":
                     self._color_mode = status['value']
                 if status['type'] == "brightness":
                     self._brightness = status['value']
                 if status['type'] == "colorTemperature":
                     self._color_temperature = status['value']
-
 
     def set_attribute_update_callback(self, callback):
         """

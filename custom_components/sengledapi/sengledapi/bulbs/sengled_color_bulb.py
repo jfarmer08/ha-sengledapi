@@ -23,14 +23,14 @@ class SengledColorBulb:
         self._jsession_id = jsession_id
         self._isonline = isonline
         self._country = country
-        self._device_rssi = None
+        self._device_rssi = 0
         #Support Features
-        self._brightness = None
+        self._brightness = 0
         self._color_temperature = 2000
-        self._color = None
-        self._rgb_color_r = None
-        self._rgb_color_g = None
-        self._rgb_color_b = None
+        self._color = 0
+        self._rgb_color_r = 0
+        self._rgb_color_g = 0
+        self._rgb_color_b = 0
 
     async def async_turn_on(self):
         _LOGGER.debug("SengledApi: Color Bulb %s %s turning on.", self._friendly_name, self._device_mac)
