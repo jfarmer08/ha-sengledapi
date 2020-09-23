@@ -38,7 +38,7 @@ class WifiColorBulb:
         self._device_rssi = None
         self._country = None
         self._brightness = 0
-        self._color_temperature = 0
+        self._color_temperature = 2000
         self._color = 0
         self._rgb_color_r = 0
         self._rgb_color_g = 0
@@ -111,7 +111,7 @@ class WifiColorBulb:
         )
         _LOGGER.info("SengledApi: color Temp from HA %s", str(colorTemperature))
         color_temperature_precentage = round(
-            self.translate(int(colorTemperature), 2000, 6500, 1, 100)
+            BulbProperty.translate(self, int(colorTemperature), 2000, 6500, 1, 100)
         )
         _LOGGER.info("SengledApi: color Temp %s", color_temperature_precentage)
         data_color_temperature = {
@@ -284,7 +284,7 @@ class WifiBulb:
         self._just_changed_state = False
         self._device_model = device_model
         self._brightness = 0
-        self._color_temperature = 0
+        self._color_temperature = 2000
         self._color = 0
         self._rgb_color_r = 0
         self._rgb_color_g = 0

@@ -92,6 +92,11 @@ async def async_setup_entry(hass, entry):
     bulbtype = entry.data[CONF_TYPE]
 
     sengledapi_account = SengledApi(username, password, country, bulbtype,)
+        username,
+        password,
+        country,
+        bulbtype,
+    )
 
     await sengledapi_account.async_init()
 

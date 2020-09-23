@@ -97,7 +97,7 @@ class BulbProperty:
         else:
             if self._attributes["deviceRssi"]:
                 device_rssi = self._info["attributes"]["deviceRssi"]
-                return self.translate(int(device_rssi), 0, 5, 0, -100)
+                return self.translate(int(device_rssi), 0, 5, -100, -30)
 
     @property
     def name(self):

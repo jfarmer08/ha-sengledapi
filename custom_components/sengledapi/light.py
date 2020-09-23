@@ -70,7 +70,6 @@ class SengledBulb(LightEntity):
     @property
     def name(self):
         """Return the display name of this light."""
-        # pylint:disable=logging-not-lazy
         return self._name
 
     @property
