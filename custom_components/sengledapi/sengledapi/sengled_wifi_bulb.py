@@ -33,13 +33,13 @@ class SengledWifiBulb:
         self._avaliable = isonline
         self._just_changed_state = False
         self._device_model = device_model
-        self._brightness = None
-        self._color_temperature = None
-        self._color = None
-        self._rgb_color_r = None
-        self._rgb_color_g = None
-        self._rgb_color_b = None
-        self._device_rssi = None
+        self._brightness = 0
+        self._color_temperature = 0
+        self._color = 0
+        self._rgb_color_r = 0
+        self._rgb_color_g = 0
+        self._rgb_color_b = 0
+        self._device_rssi = 0
         self._jsession_id = jsession_id
         self._country = country
 
