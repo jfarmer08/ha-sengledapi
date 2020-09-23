@@ -180,6 +180,9 @@ class SengledBulb(LightEntity):
         self._brightness = self._light._brightness
         self._color_temperature = self._light._color_temperature
         self._color = self._light._color
+        self._rgb_color_r = self._light._rgb_color_r
+        self._rgb_color_g = self._light._rgb_color_g
+        self._rgb_color_b = self._light._rgb_color_b
 
     @property
     def device_info(self):

@@ -65,16 +65,16 @@ class SengledColorBulb:
         _LOGGER.debug("Bulb %s %s changing color.", self._friendly_name, self._device_mac)
 
         _LOGGER.info("SengledApi: color Temp from HA %s", str(colorTemperature))
-        color_temperature_precentage = round(self.translate(int(colorTemperature), 2000, 6500, 1, 100))
-        _LOGGER.info("SengledApi: color Temp %s", color_temperature_precentage)
+        color_temperature_percentage = round(self.translate(int(colorTemperature), 2000, 6500, 1, 100))
+        _LOGGER.info("SengledApi: color Temp %s", color_temperature_percentage)
 
         self._just_changed_state = True
         url = (
             "https://"
             + self._country
-            + "-elements.cloud.sengled.com/zigbee/device/deviceSet/ColorTemperature.json"
+            + "-elements.cloud.sengled.com/zigbee/device/deviceSetColorTemperature.json"
         )
-        payload =  {}
+        payload = {"deviceUuid": self._device_mac, "colorTemperature": color_temperature_percentage}
         self._state = True
         self._just_changed_state = True
 
@@ -96,9 +96,14 @@ class SengledColorBulb:
         )
 
         mycolor = str(color)
-        for r in ((" ", ""), (",", ":"), ("(",""),(")","")):
-            mycolor = mycolor.replace(*r)
-        a, b, c = mycolor.split(":")
+        if self._device_model == "E11-N1EA" or self._device_model == "E11-U2E" or self._device_model == "E11-U3E" or self._device_model == "E1G-G8E" or self._device_model == "E12-N1E":
+            for r in ((" ", ""), (",", ","), ("(",""),(")","")):
+                mycolor = mycolor.replace(*r)
+                a, b, c = mycolor.split(",")
+        if self._device_model == "wifia19" or self._device_model == "wificolora19":
+            for r in ((" ", ""), (",", ":"), ("(",""),(")","")):
+                mycolor = mycolor.replace(*r)
+                a, b, c = mycolor.split(":")
         _LOGGER.info("SengledApi: Set Color R %s G %s B %s", int(a), int(b), int(c))
 
         self._just_changed_state = True
