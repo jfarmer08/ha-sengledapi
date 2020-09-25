@@ -66,7 +66,7 @@ class WifiBulb:
             + " .turning on"
         )
 
-        if ONOFF == 1:
+        if ONOFF == "1":
             self._state = True
         else:
             self._state = False
@@ -74,7 +74,7 @@ class WifiBulb:
         data = {
             "dn": self._device_mac,
             "type": "switch",
-            "value": str(ONOFF),
+            "value": ONOFF,
             "time": int(time.time() * 1000),
         }
 
