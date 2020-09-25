@@ -41,6 +41,7 @@ class Bulb:
         self._rgb_color_g = 0
         self._rgb_color_b = 0
         self._alarm_status = None
+        self._wifi_device = True
         self._support_color = support_color
         self._support_color_temp = support_color_temp
         self._support_brightness = support_brightness

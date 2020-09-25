@@ -66,6 +66,7 @@ class SengledBulb(LightEntity):
         self._rgb_color_g = light._rgb_color_g
         self._rgb_color_b = light._rgb_color_b
         self._alarm_status = light._alarm_status
+        self._wifi_device = light._wifi_device
         self._support_color = light._support_color
         self._support_color_temp = light._support_color_temp
         self._support_brightness = light._support_brightness
@@ -117,29 +118,13 @@ class SengledBulb(LightEntity):
     def hs_color(self):
         """Return the hs_color of the light."""
         if self._color is not None:
-            if self._device_model == "wificolora19":
+            if self._wifi_device:
                 a, b, c = self._color.split(":")
                 return colorutil.color_RGB_to_hs(int(a), int(b), int(c))
-        if self._device_model == "E11-N1EA":
-            return colorutil.color_RGB_to_hs(
-                self._rgb_color_r, self._rgb_color_g, self._rgb_color_b
-            )
-        if self._device_model == "E11-U2E":
-            return colorutil.color_RGB_to_hs(
-                self._rgb_color_r, self._rgb_color_g, self._rgb_color_b
-            )
-        if self._device_model == "E11-U3E":
-            return colorutil.color_RGB_to_hs(
-                self._rgb_color_r, self._rgb_color_g, self._rgb_color_b
-            )
-        if self._device_model == "E1G-G8E":
-            return colorutil.color_RGB_to_hs(
-                self._rgb_color_r, self._rgb_color_g, self._rgb_color_b
-            )
-        if self._device_model == "E12-N1E":
-            return colorutil.color_RGB_to_hs(
-                self._rgb_color_r, self._rgb_color_g, self._rgb_color_b
-            )
+            else:
+                return colorutil.color_RGB_to_hs(
+                    self._rgb_color_r, self._rgb_color_g, self._rgb_color_b
+                )
         return ""
 
     @property
