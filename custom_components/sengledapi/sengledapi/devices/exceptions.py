@@ -20,6 +20,4 @@ class AccessTokenError(SengledApiError):
 
 
 class SengledApiAccessToken:
-    def __init__(no_return=False):
-        _LOGGER.debug("SengledApiAccessToken initializing.")
-        self.access_token = None
+    pass

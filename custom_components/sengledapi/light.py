@@ -26,6 +26,8 @@ from homeassistant.components.light import (
 
 # Add to support quicker update time. Is this to Fast?
 SCAN_INTERVAL = timedelta(seconds=30)
+ON = "1"
+OFF = "0"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -64,6 +66,7 @@ class SengledBulb(LightEntity):
         self._rgb_color_g = light._rgb_color_g
         self._rgb_color_b = light._rgb_color_b
         self._alarm_status = light._alarm_status
+        self._support_color = light._support_color
         self._support_color_temp = light._support_color_temp
         self._support_brightness = light._support_brightness
 
@@ -107,14 +110,16 @@ class SengledBulb(LightEntity):
     @property
     def color_temp(self):
         """Return the color_temp of the light."""
-        return colorutil.color_temperature_kelvin_to_mired(self._color_temperature)
+        if self._color_temperature is not None:
+            return colorutil.color_temperature_kelvin_to_mired(self._color_temperature)
 
     @property
     def hs_color(self):
         """Return the hs_color of the light."""
-        if self._device_model == "wificolora19":
-            a, b, c = self._color.split(":")
-            return colorutil.color_RGB_to_hs(int(a), int(b), int(c))
+        if self._color is not None:
+            if self._device_model == "wificolora19":
+                a, b, c = self._color.split(":")
+                return colorutil.color_RGB_to_hs(int(a), int(b), int(c))
         if self._device_model == "E11-N1EA":
             return colorutil.color_RGB_to_hs(
                 self._rgb_color_r, self._rgb_color_g, self._rgb_color_b
@@ -161,7 +166,7 @@ class SengledBulb(LightEntity):
             and ATTR_HS_COLOR not in kwargs
             and ATTR_COLOR_TEMP not in kwargs
         ):
-            await self._light.async_turn_on()
+            await self._light.async_toggle(ON)
         if ATTR_BRIGHTNESS in kwargs:
             await self._light.async_set_brightness(kwargs[ATTR_BRIGHTNESS])
         if ATTR_HS_COLOR in kwargs:
@@ -176,7 +181,7 @@ class SengledBulb(LightEntity):
 
     async def async_turn_off(self, **kwargs):
         """Instruct the light to turn off."""
-        await self._light.async_turn_off()
+        await self._light.async_toggle(OFF)
 
     async def async_update(self):
         """Fetch new state data for this light.

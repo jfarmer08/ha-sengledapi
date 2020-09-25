@@ -91,7 +91,7 @@ async def async_setup_entry(hass, entry):
     country = entry.data[CONF_COUNTRY]
     bulbtype = entry.data[CONF_TYPE]
 
-    sengledapi_account = SengledApi(username, password, country, bulbtype,)
+    sengledapi_account = SengledApi(
         username,
         password,
         country,

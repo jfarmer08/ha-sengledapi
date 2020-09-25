@@ -18,6 +18,7 @@ class Bulb:
         state,
         device_model,
         isonline,
+        support_color,
         support_color_temp,
         support_brightness,
         jsession_id,
@@ -40,29 +41,31 @@ class Bulb:
         self._rgb_color_g = 0
         self._rgb_color_b = 0
         self._alarm_status = None
+        self._support_color = support_color
         self._support_color_temp = support_color_temp
         self._support_brightness = support_brightness
         self._jsession_id = jsession_id
         self._country = country
 
-    async def async_turn_on(self):
+    async def async_toggle(self, ONOFF):
         _LOGGER.debug(
             "SengledApi: Bulb %s %s turning on.", self._friendly_name, self._device_mac
         )
-        self._just_changed_state = True
         url = (
             "https://"
             + self._country
             + "-elements.cloud.sengled.com/zigbee/device/deviceSetOnOff.json"
         )
 
-        payload = {"deviceUuid": self._device_mac, "onoff": "1"}
+        payload = {"deviceUuid": self._device_mac, "onoff": str(ONOFF)}
 
         loop = asyncio.get_running_loop()
         loop.create_task(self._api.async_do_request(url, payload, self._jsession_id))
-
-        self._state = True
         self._just_changed_state = True
+        if ONOFF == 1:
+            self._state = True
+        else:
+            self._state = False
 
     async def async_set_brightness(self, brightness):
         _LOGGER.debug(
@@ -82,137 +85,6 @@ class Bulb:
         loop = asyncio.get_running_loop()
         loop.create_task(self._api.async_do_request(url, payload, self._jsession_id))
 
-    async def async_turn_off(self):
-        _LOGGER.debug(
-            "SengledApi: Bulb %s %s turning off.", self._friendly_name, self._device_mac
-        )
-
-        url = (
-            "https://"
-            + self._country
-            + "-elements.cloud.sengled.com/zigbee/device/deviceSetOnOff.json"
-        )
-        payload = {"deviceUuid": self._device_mac, "onoff": "0"}
-
-        loop = asyncio.get_running_loop()
-        loop.create_task(self._api.async_do_request(url, payload, self._jsession_id))
-
-        self._state = False
-        self._just_changed_state = True
-
-    def is_on(self):
-        return self._state
-
-    async def async_update(self):
-        _LOGGER.debug(
-            "Sengled Bulb "
-            + self._friendly_name
-            + " "
-            + self._device_mac
-            + " updating."
-        )
-        if self._just_changed_state:
-            self._just_changed_state = False
-        else:
-            url = (
-                "https://element.cloud.sengled.com/zigbee/device/getDeviceDetails.json"
-            )
-            payload = {}
-            bulbs = []
-            data = await self._api.async_do_request(url, payload, self._jsession_id)
-            for item in data["deviceInfos"]:
-                for devices in item["lampInfos"]:
-                    bulbs.append(BulbProperty(self, devices, False))
-                    for items in bulbs:
-                        if items.uuid == self._device_mac:
-                            self._friendly_name = items.name
-                            self._state = items.switch
-                            self._avaliable = items.isOnline
-                            self._device_rssi = items.device_rssi
-                            # Supported Features
-                            self._brightness = items.brightness
-                            if items.typeCode == "E13-N11":
-                                self._alarm_status = items.alarm_status
-
-
-class ColorBulb:
-    def __init__(
-        self,
-        api,
-        device_mac,
-        friendly_name,
-        state,
-        device_model,
-        isonline,
-        support_color_temp,
-        support_brightness,
-        jsession_id,
-        country,
-    ):
-        _LOGGER.debug("SengledApi: Color Bulb %s initializing.", friendly_name)
-
-        self._api = api
-        self._device_mac = device_mac
-        self._friendly_name = friendly_name
-        self._state = state
-        self._avaliable = True
-        self._just_changed_state = False
-        self._device_model = device_model
-        self._jsession_id = jsession_id
-        self._isonline = isonline
-        self._country = country
-        self._device_rssi = None
-        self._support_color_temp = support_color_temp
-        self._support_brightness = support_brightness
-        # Support Features
-        self._brightness = None
-        self._color_temperature = 2000
-        self._color = None
-        self._rgb_color_r = None
-        self._rgb_color_g = None
-        self._rgb_color_b = None
-        self._alarm_status = None
-
-    async def async_turn_on(self):
-        _LOGGER.debug(
-            "SengledApi: Color Bulb %s %s turning on.",
-            self._friendly_name,
-            self._device_mac,
-        )
-
-        url = (
-            "https://"
-            + self._country
-            + "-elements.cloud.sengled.com/zigbee/device/deviceSetOnOff.json"
-        )
-
-        payload = {"deviceUuid": self._device_mac, "onoff": "1"}
-        self._state = True
-        self._just_changed_state = True
-        loop = asyncio.get_running_loop()
-        loop.create_task(self._api.async_do_request(url, payload, self._jsession_id))
-
-    async def async_set_brightness(self, brightness):
-        _LOGGER.debug(
-            "SengledApi: Color Bulb %s %s setting brightness.",
-            self._friendly_name,
-            self._device_mac,
-        )
-
-        self._just_changed_state = True
-        url = (
-            "https://"
-            + self._country
-            + "-elements.cloud.sengled.com/zigbee/device/deviceSetBrightness.json"
-        )
-
-        payload = {"deviceUuid": self._device_mac, "brightness": brightness}
-
-        self._state = True
-        self._just_changed_state = True
-        loop = asyncio.get_running_loop()
-        loop.create_task(self._api.async_do_request(url, payload, self._jsession_id))
-
     async def async_color_temperature(self, colorTemperature):
         _LOGGER.debug(
             "Bulb %s %s changing color.", self._friendly_name, self._device_mac
@@ -223,8 +95,8 @@ class ColorBulb:
             BulbProperty.translate(
                 self,
                 int(colorTemperature),
-                BulbProperty.max_kelvin,
-                BulbProperty.min_kelvin,
+                2000,
+                6500,
                 1,
                 100,
             )
@@ -287,47 +159,24 @@ class ColorBulb:
         loop = asyncio.get_running_loop()
         loop.create_task(self._api.async_do_request(url, payload, self._jsession_id))
 
-    async def async_turn_off(self):
-        _LOGGER.debug(
-            "SengledApi: Color Bulb %s %s turning on.",
-            self._friendly_name,
-            self._device_mac,
-        )
-        self._just_changed_state = True
-        url = (
-            "https://"
-            + self._country
-            + "-elements.cloud.sengled.com/zigbee/device/deviceSetOnOff.json"
-        )
-        payload = {"deviceUuid": self._device_mac, "onoff": "0"}
-
-        loop = asyncio.get_running_loop()
-        loop.create_task(self._api.async_do_request(url, payload, self._jsession_id))
-
-        self._state = False
-        self._just_changed_state = True
-
     def is_on(self):
         return self._state
 
     async def async_update(self):
         _LOGGER.debug(
-            "SenledApi: Color Bulb %s Mac %s updating.",
-            self._friendly_name,
-            self._device_mac,
+            "Sengled Bulb "
+            + self._friendly_name
+            + " "
+            + self._device_mac
+            + " updating."
         )
-
         if self._just_changed_state:
             self._just_changed_state = False
         else:
             url = (
-                "https://"
-                + self._country
-                + "-elements.cloud.sengled.com/zigbee/device/getDeviceDetails.json"
+                "https://element.cloud.sengled.com/zigbee/device/getDeviceDetails.json"
             )
-
             payload = {}
-
             bulbs = []
             data = await self._api.async_do_request(url, payload, self._jsession_id)
             for item in data["deviceInfos"]:
@@ -340,17 +189,14 @@ class ColorBulb:
                             self._avaliable = items.isOnline
                             self._device_rssi = items.device_rssi
                             # Supported Features
-                            self._brightness = int(items["attributes"]["brightness"])
-                            self._color_temperature = round(
-                                BulbProperty.translate(
-                                    self,
-                                    int(items["attributes"]["colorTemperature"]),
-                                    0,
-                                    100,
-                                    BulbProperty.max_kelvin,
-                                    BulbProperty.min_kelvin,
-                                )
-                            )
-                            self._rgb_color_r = int(items["attributes"]["rgbColorR"])
-                            self._rgb_color_g = int(items["attributes"]["rgbColorG"])
-                            self._rgb_color_b = int(items["attributes"]["rgbColorB"])
+                            if self._support_brightness:
+                                self._brightness = items.brightness
+                            if self._support_color:
+                                self._rgb_color_b = items.rgb_color_b
+                                self._rgb_color_g = items.rgb_color_g
+                                self._rgb_color_r = items.rgb_color_r
+                            if self._support_color_temp:
+                                _LOGGER.debug("color temp %s", items.color_temperature)
+                                self._color_temperature = items.color_temperature
+                            if items.typeCode == "E13-N11":
+                                self._alarm_status = items.alarm_status

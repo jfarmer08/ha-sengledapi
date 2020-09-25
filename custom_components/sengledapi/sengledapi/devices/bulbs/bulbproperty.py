@@ -16,8 +16,7 @@ class BulbProperty:
         client -- SengledClient instance this is attached to
         info -- the device info object returned by the server
         """
-        _LOGGER.debug("farmer propertys")
-        _LOGGER.debug(info)
+        _LOGGER.debug("SengledApi: Bulb Property - %s", info)
         self._client = client
         self._wifi = wifi
         if wifi:
@@ -53,7 +52,7 @@ class BulbProperty:
         else:
             if self._attributes["brightness"]:
                 brightness = self._info["attributes"]["brightness"]
-                return brightness
+                return int(brightness)
 
     @property
     def color_temperature(self):
@@ -66,11 +65,11 @@ class BulbProperty:
             for attr in self._attributes:
                 if attr["name"] == "colorTemperature":
                     return round(self.translate(int(attr["value"]), 0, 100, 2000, 6500))
-            return 1
+                return 2000
         else:
             if self._attributes["colorTemperature"]:
                 color_temperature = self._info["attributes"]["colorTemperature"]
-                return color_temperature
+                return int(color_temperature)
 
     @property
     def color_mode(self):
@@ -121,11 +120,10 @@ class BulbProperty:
             for attr in self._attributes:
                 if attr["name"] == "switch":
                     return True if attr["value"] == "1" else False
-            return False
         else:
             if self._attributes:
                 onoff = self._info["attributes"]["onoff"]
-                return "true" if onoff == "1" else "false"
+                return True if onoff == "1" else False
 
     @property
     def isOnline(self):
@@ -133,13 +131,13 @@ class BulbProperty:
         if self._wifi:
             for attr in self._attributes:
                 if attr["name"] == "online":
-                    return "true" if attr["value"] == "1" else "false"
+                    return True if attr["value"] == "1" else False
 
             return False
         else:
             if self._attributes:
                 online = self._info["attributes"]["isOnline"]
-                return "true" if online == "1" else "false"
+                return True if online == "1" else False
 
     @property
     def typeCode(self):
@@ -208,19 +206,19 @@ class BulbProperty:
     def rgb_color_r(self):
         if self._attributes["rgbColorR"]:
             rgbColorR = self._info["attributes"]["rgbColorR"]
-            return rgbColorR
+            return int(rgbColorR)
 
     @property
     def rgb_color_g(self):
         if self._attributes["rgbColorG"]:
             rgbColorG = self._info["attributes"]["rgbColorG"]
-            return rgbColorG
+            return int(rgbColorG)
 
     @property
     def rgb_color_b(self):
         if self._attributes["rgbColorB"]:
             rgbColorB = self._info["attributes"]["rgbColorB"]
-            return rgbColorB
+            return int(rgbColorB)
 
     ###Wifi only Property
     @property
@@ -301,13 +299,12 @@ class BulbProperty:
         return self._category
 
     ##########################
-
+    @property
     def max_kelvin(self):
-        _LOGGER.debug("SengledApi: Max Kelvin")
         return 2000
 
+    @property
     def min_kelvin(self):
-        _LOGGER.debug("SengledApi: Max Kelvin")
         return 6500
 
     ##########################
