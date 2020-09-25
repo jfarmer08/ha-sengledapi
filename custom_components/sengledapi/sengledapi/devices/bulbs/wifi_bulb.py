@@ -143,15 +143,10 @@ class WifiBulb:
             + " .Setting Color"
         )
 
-        mycolor = str(color)
-        for r in ((" ", ""), (",", ":"), ("(", ""), (")", "")):
-            mycolor = mycolor.replace(*r)
-
-        _LOGGER.info("SengledApi: Wifi Set Color %s", str(mycolor))
         data_color = {
             "dn": self._device_mac,
             "type": "color",
-            "value": mycolor,
+            "value": self.convert_color_HA(color),
             "time": int(time.time() * 1000),
         }
         self._state = True
@@ -246,3 +241,9 @@ class WifiBulb:
         }
 
         return attr_map.get(attr, attr)
+
+    def convert_color_HA(self, HACOLOR):
+        sengled_color = str(HACOLOR)
+        for r in ((" ", ""), (",", ":"), ("(", ""), (")", "")):
+            sengled_color = sengled_color.replace(*r)
+        return sengled_color
