@@ -116,11 +116,11 @@ class WifiBulb:
             + self._device_mac
             + " .Setting ColorTemp"
         )
-        _LOGGER.info("SengledApi: color Temp from HA %s", str(colorTemperature))
+
         color_temperature_precentage = round(
             BulbProperty.translate(self, int(colorTemperature), 2000, 6500, 1, 100)
         )
-        _LOGGER.info("SengledApi: color Temp %s", color_temperature_precentage)
+
         data_color_temperature = {
             "dn": self._device_mac,
             "type": "colorTemperature",

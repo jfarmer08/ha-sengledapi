@@ -31,7 +31,7 @@ class Bulb:
         self._friendly_name = friendly_name
         self._state = state
         self._avaliable = isonline
-        self._just_changed_state = False
+        self._just_changed_state = True
         self._device_model = device_model
         self._device_rssi = None
         self._brightness = 0
@@ -52,28 +52,29 @@ class Bulb:
         _LOGGER.debug(
             "SengledApi: Bulb %s %s turning on.", self._friendly_name, self._device_mac
         )
+
+        if ONOFF == "1":
+            self._state = True
+        else:
+            self._state = False
+
         url = (
             "https://"
             + self._country
             + "-elements.cloud.sengled.com/zigbee/device/deviceSetOnOff.json"
         )
 
-        payload = {"deviceUuid": self._device_mac, "onoff": str(ONOFF)}
+        payload = {"deviceUuid": self._device_mac, "onoff": ONOFF}
 
         loop = asyncio.get_running_loop()
         loop.create_task(self._api.async_do_request(url, payload, self._jsession_id))
-        self._just_changed_state = True
-        if ONOFF == 1:
-            self._state = True
-        else:
-            self._state = False
+
 
     async def async_set_brightness(self, brightness):
         _LOGGER.debug(
             "Bulb %s %s setting brightness.", self._friendly_name, self._device_mac
         )
         self._state = True
-        self._just_changed_state = True
 
         url = (
             "https://"
@@ -115,7 +116,6 @@ class Bulb:
             "colorTemperature": color_temperature_percentage,
         }
         self._state = True
-        self._just_changed_state = True
 
         loop = asyncio.get_running_loop()
         loop.create_task(self._api.async_do_request(url, payload, self._jsession_id))
@@ -139,7 +139,6 @@ class Bulb:
 
         _LOGGER.info("SengledApi: Set Color R %s G %s B %s", int(a), int(b), int(c))
 
-        self._just_changed_state = True
         url = (
             "https://"
             + self._country
@@ -155,7 +154,6 @@ class Bulb:
         }
 
         self._state = True
-        self._just_changed_state = True
 
         loop = asyncio.get_running_loop()
         loop.create_task(self._api.async_do_request(url, payload, self._jsession_id))

@@ -10,14 +10,14 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class BulbProperty:
-    def __init__(self, client, info, wifi):
+    def __init__(self, api, info, wifi):
         """
         Initialize the bulb.
-        client -- SengledClient instance this is attached to
+        api -- Sengledapi instance this is attached to
         info -- the device info object returned by the server
         """
         _LOGGER.debug("SengledApi: Bulb Property - %s", info)
-        self._client = client
+        self._api = api
         self._wifi = wifi
         if wifi:
             self._uuid = info["deviceUuid"]
