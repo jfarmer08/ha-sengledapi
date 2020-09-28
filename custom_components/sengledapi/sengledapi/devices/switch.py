@@ -6,9 +6,16 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 
-class SengledSwitch:
+class Switch:
     def __init__(
-        self, api, device_mac, friendly_name, state, device_model, accesstoken, country,
+        self,
+        api,
+        device_mac,
+        friendly_name,
+        state,
+        device_model,
+        accesstoken,
+        country,
     ):
         _LOGGER.debug("SengledApi: Switch " + friendly_name + " initializing.")
 

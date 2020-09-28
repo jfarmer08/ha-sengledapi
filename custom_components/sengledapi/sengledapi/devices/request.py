@@ -7,14 +7,16 @@ import ssl
 import certifi
 import logging
 
+from .exceptions import SengledApiAccessToken
 
 _LOGGER = logging.getLogger(__name__)
-from .sengledapi_exceptions import SengledApiAccessToken
+
+_LOGGER.info("SengledApi: Initializing Request")
 
 
-class SengledRequest:
+class Request:
     def __init__(self, url, payload, no_return=False):
-        _LOGGER.debug("SengledApi: Sengled Request initializing.")
+        _LOGGER.info("SengledApi: Sengled Request initializing.")
         self._url = url
         self._payload = json.dumps(payload)
         self._no_return = no_return
@@ -33,9 +35,7 @@ class SengledRequest:
             "Cookie": "JSESSIONID={}".format(jsession_id),
             "Connection": "keep-alive",
         }
-        _LOGGER.debug(
-            "SengledApi: get_response Sengled Request getting response NON-async."
-        )
+
         r = requests.post(self._url, headers=self._header, data=self._payload)
         data = r.json()
         return data
@@ -47,58 +47,52 @@ class SengledRequest:
             "Host": "element.cloud.sengled.com:443",
             "Connection": "keep-alive",
         }
-        _LOGGER.debug(
-            "SengledApi: async_get_response Sengled Request getting response async."
-        )
+
         async with aiohttp.ClientSession() as session:
             sslcontext = ssl.create_default_context(cafile=certifi.where())
             async with session.post(
                 self._url, headers=self._header, data=self._payload, ssl=sslcontext
             ) as resp:
                 data = await resp.json()
-                _LOGGER.debug("SengledApi: data from async_get_response " + str(data))
+                # _LOGGER.debug("SengledApi: data from Response %s ", str(data))
                 return data
 
     ########################Login#####################################
     def get_login_response(self):
-        _LOGGER.debug(
-            "SengledApi: get_login_response Sengled Request getting response."
-        )
+        _LOGGER.info("SengledApi: Get Login Reponse.")
         r = requests.post(self._url, headers=self._header, data=self._payload)
         data = r.json()
-        _LOGGER.debug("SengledApi: data from get_response " + str(data))
+        _LOGGER.debug("SengledApi: Get Login Reponse %s", str(data))
         return data
 
     async def async_get_login_response(self):
-        _LOGGER.debug(
-            "SengledApi: async_get_login_response Sengled Request getting response async."
-        )
+        _LOGGER.info("SengledApi: Get Login Response async.")
         async with aiohttp.ClientSession() as session:
             sslcontext = ssl.create_default_context(cafile=certifi.where())
             async with session.post(
                 self._url, headers=self._header, data=self._payload, ssl=sslcontext
             ) as resp:
                 data = await resp.json()
-                _LOGGER.debug("SengledApi: data from async_get_response " + str(data))
+                _LOGGER.debug("SengledApi: Get Login Response %s ", str(data))
                 return data
 
     ######################Session Timeout#################################
     def is_session_timeout_response(self, jsession_id):
+        _LOGGER.info("SengledApi: Get Session Timeout Response")
         self._header = {
             "Content-Type": "application/json",
             "Cookie": "JSESSIONID={}".format(jsession_id),
             "sid": jsession_id,
             "X-Requested-With": "com.sengled.life2",
         }
-        _LOGGER.debug("SengledApi: Data from is_session_timeout_response")
+
         r = requests.post(self._url, headers=self._header, data=self._payload)
         data = r.json()
+        _LOGGER.debug("SengledApi: Get Session Timeout Response %s", str(data))
         return data
 
     async def async_is_session_timeout_response(self, jsession_id):
-        _LOGGER.debug(
-            "SengledApi: async_get_login_response Sengled Request getting response async."
-        )
+        _LOGGER.info("SengledApi: Get Session Timeout Response Async")
         self._header = {
             "Content-Type": "application/json",
             "Cookie": "JSESSIONID={}".format(jsession_id),
@@ -111,8 +105,7 @@ class SengledRequest:
                 self._url, headers=self._header, data=self._payload, ssl=sslcontext
             ) as resp:
                 data = await resp.json()
-                _LOGGER.debug(
-                    "SengledApi: Data from async_is_session_timeout_response "
-                    + str(data)
+                _LOGGER.info(
+                    "SengledApi: Get Session Timeout Response Async %s", str(data)
                 )
                 return data

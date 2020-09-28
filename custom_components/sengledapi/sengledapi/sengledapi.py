@@ -2,16 +2,14 @@
 """Sengled Bulb Integration."""
 # from .devices.sengled_wifi_bulb_property import SengledWifiBulbProperty
 from .devices.bulbs.bulbproperty import BulbProperty
-from .devices.request import SengledRequest
+from .devices.request import Request
 
 from .devices.bulbs.bulb import Bulb
-from .devices.bulbs.bulb import ColorBulb
 from .devices.bulbs.wifi_bulb import WifiBulb
-from .devices.bulbs.wifi_bulb import WifiColorBulb
 
-from .devices.sengled_switch import SengledSwitch
+from .devices.switch import Switch
 
-from .devices.sengledapi_exceptions import SengledApiAccessToken
+from .devices.exceptions import SengledApiAccessToken
 
 import logging
 
@@ -40,8 +38,6 @@ class SengledSession:
     }
     mqtt_client = None
     subscribe = {}
-    refreshToken = ""
-    expireTime = 0
     devices = []
     wifi_devices = []
 
@@ -101,9 +97,9 @@ class SengledApi:
                     "SengledApi: Login initialize mqtt client %s",
                     str(SESSION.mqtt_client),
                 )
-                self._initialize_mqtt()
+                self.initialize_mqtt()
             else:
-                self._reinitialize_mqtt()
+                self.reinitialize_mqtt()
 
         return True
 
@@ -203,55 +199,25 @@ class SengledApi:
         bulbs = []
         for device in await self.async_get_devices():
             _LOGGER.debug("SengledApi: List Device return %s", device)
-            if device.support_color_temp:
-                bulbs.append(
-                    ColorBulb(
-                        self,
-                        device.uuid,
-                        device.name,
-                        device.switch,
-                        device.typeCode,
-                        device.isOnline,
-                        device.support_color_temp,
-                        device.support_brightness,
-                        SESSION.jsession_id,
-                        SESSION.countryCode,
-                    )
+            bulbs.append(
+                Bulb(
+                    self,
+                    device.uuid,
+                    device.name,
+                    device.switch,
+                    device.typeCode,
+                    device.isOnline,
+                    device.support_color,
+                    device.support_color_temp,
+                    device.support_brightness,
+                    SESSION.jsession_id,
+                    SESSION.countryCode,
                 )
-            else:
-                bulbs.append(
-                    Bulb(
-                        self,
-                        device.uuid,
-                        device.name,
-                        device.switch,
-                        device.typeCode,
-                        device.isOnline,
-                        device.support_color_temp,
-                        device.support_brightness,
-                        SESSION.jsession_id,
-                        SESSION.countryCode,
-                    )
-                )
+            )
         if SESSION.wifi:
             for device in await self.async_get_wifi_devices():
                 _LOGGER.debug("SengledApi: List Wifi Device return %s", device)
                 if device.support_color_temp:
-                    bulbs.append(
-                        WifiColorBulb(
-                            self,
-                            device.uuid,
-                            device.name,
-                            device.switch,
-                            device.typeCode,
-                            device.isOnline,
-                            device.support_color_temp,
-                            device.support_brightness,
-                            SESSION.jsession_id,
-                            SESSION.countryCode,
-                        )
-                    )
-                else:
                     bulbs.append(
                         WifiBulb(
                             self,
@@ -260,6 +226,7 @@ class SengledApi:
                             device.switch,
                             device.typeCode,
                             device.isOnline,
+                            device.support_color,
                             device.support_color_temp,
                             device.support_brightness,
                             SESSION.jsession_id,
@@ -293,32 +260,32 @@ class SengledApi:
     #######################Do request#######################################################
     async def async_do_request(self, url, payload, jsessionId):
         try:
-            return await SengledRequest(url, payload).async_get_response(jsessionId)
+            return await Request(url, payload).async_get_response(jsessionId)
         except:
-            return SengledRequest(url, payload).get_response(jsessionId)
+            return Request(url, payload).get_response(jsessionId)
 
     ###################################Login Request only###############################
     async def async_do_login_request(self, url, payload):
         _LOGGER.debug("async_do_login_request - Sengled Api doing request.")
         try:
-            return await SengledRequest(url, payload).async_get_login_response()
+            return await Request(url, payload).async_get_login_response()
         except:
-            return SengledRequest(url, payload).get_login_response()
+            return Request(url, payload).get_login_response()
 
     ######################################Session Timeout#######################################
     async def async_do_is_session_timeout_request(self, url, payload):
         _LOGGER.debug("async_do_login_request - Sengled Api doing request.")
         try:
-            return await SengledRequest(url, payload).async_is_session_timeout_response(
+            return await Request(url, payload).async_is_session_timeout_response(
                 SESSION.jsession_id
             )
         except:
-            return SengledRequest(url, payload).is_session_timeout_response(
+            return Request(url, payload).is_session_timeout_response(
                 SESSION.jsession_id
             )
 
     #########################MQTT#################################################
-    def _initialize_mqtt(self):
+    def initialize_mqtt(self):
         _LOGGER.debug("SengledApi: Initialize the MQTT connection")
         """Initialize the MQTT connection."""
         if not SESSION.jsession_id:
@@ -353,7 +320,7 @@ class SengledApi:
         _LOGGER.debug("SengledApi: Start mqtt loop")
         return True
 
-    def _reinitialize_mqtt(self):
+    def reinitialize_mqtt(self):
         """Re-initialize the MQTT connection."""
         _LOGGER.debug("SengledApi: Re-initialize the MQTT connection")
         if SESSION.mqtt_client is None or not SESSION.jsession_id:
@@ -376,7 +343,7 @@ class SengledApi:
 
         return True
 
-    def _publish_mqtt(self, topic, payload=None):
+    def publish_mqtt(self, topic, payload=None):
         """
         Publish an MQTT message.
         topic -- topic to publish the message on
@@ -397,7 +364,7 @@ class SengledApi:
 
         return False
 
-    def _subscribe_mqtt(self, topic, callback):
+    def subscribe_mqtt(self, topic, callback):
         _LOGGER.debug("SengledApi: Subscribe to an  MQTT Topic")
         """
         Subscribe to an MQTT topic.
@@ -415,7 +382,7 @@ class SengledApi:
         SESSION.subscribe[topic] = callback
         return True
 
-    def _unsubscribe_mqtt(self, topic, callback):
+    def unsubscribe_mqtt(self, topic, callback):
         _LOGGER.debug("SengledApi: Unsubscribe from an MQTT topic")
         """
         Unsubscribe from an MQTT topic.
