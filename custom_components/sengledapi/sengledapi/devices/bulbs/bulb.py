@@ -1,6 +1,12 @@
 """Sengled Bulb Integration."""
 
 import asyncio
+from config.custom_components.sengledapi.sengledapi.devices.bulbs.const import (
+    HTTPS,
+    SET_BRIGHTNESS,
+    SET_GROUP,
+    SET_COLOR_TEMPERATURE,
+)
 import logging
 import time
 import json
@@ -52,12 +58,12 @@ class Bulb:
         self._country = country
         # self._api._subscribe_mqtt(
         #    "wifielement/{}/status".format(self._device_mac),
-        #    self._update_status,
+        #    self.update_status,
         # )
 
-    async def async_toggle(self, ONOFF):
-
-        if ONOFF == "1":
+    async def async_toggle(self, onoff):
+        """Toggle Bulb on or off"""
+        if onoff == "1":
             self._state = True
         else:
             self._state = False
@@ -70,7 +76,7 @@ class Bulb:
             data = {
                 "dn": self._device_mac,
                 "type": "switch",
-                "value": ONOFF,
+                "value": onoff,
                 "time": int(time.time() * 1000),
             }
 
@@ -85,12 +91,12 @@ class Bulb:
                 self._device_mac,
             )
             url = (
-                "https://"
+                HTTPS
                 + self._country
                 + "-elements.cloud.sengled.com/zigbee/device/deviceSetOnOff.json"
             )
 
-            payload = {"deviceUuid": self._device_mac, "onoff": ONOFF}
+            payload = {"deviceUuid": self._device_mac, "onoff": onoff}
 
             loop = asyncio.get_running_loop()
             loop.create_task(
@@ -98,21 +104,21 @@ class Bulb:
             )
 
     async def async_set_brightness(self, brightness):
+        """Set Bulb Brightness"""
         if self._wifi_device:
             _LOGGER.info(
                 "Wifi Bulb %s %s setting brightness.",
                 self._friendly_name,
                 self._device_mac,
             )
+
             brightness_precentage = round((brightness / 255) * 100)
 
             _LOGGER.info(
-                "SengledApi: Wifi Color Bulb "
-                + self._friendly_name
-                + " "
-                + self._device_mac
-                + " setting Brightness "
-                + str(brightness_precentage)
+                "SengledApi: Wifi Color Bulb %s %s setting Brighness %s",
+                self._friendly_name,
+                self._device_mac,
+                str(brightness_precentage),
             )
 
             data_brightness = {
@@ -121,7 +127,6 @@ class Bulb:
                 "value": str(brightness_precentage),
                 "time": int(time.time() * 1000),
             }
-            self._state = True
 
             self._api.publish_mqtt(
                 "wifielement/{}/update".format(self._device_mac),
@@ -131,13 +136,8 @@ class Bulb:
             _LOGGER.info(
                 "Bulb %s %s setting brightness.", self._friendly_name, self._device_mac
             )
-            self._state = True
 
-            url = (
-                "https://"
-                + self._country
-                + "-elements.cloud.sengled.com/zigbee/device/deviceSetBrightness.json"
-            )
+            url = HTTPS + self._country + SET_BRIGHTNESS
 
             payload = {"deviceUuid": self._device_mac, "brightness": brightness}
 
@@ -146,18 +146,18 @@ class Bulb:
                 self._api.async_do_request(url, payload, self._jsession_id)
             )
 
-    async def async_color_temperature(self, colorTemperature):
+    async def async_color_temperature(self, color_temperature):
+        """Set Color Temperature"""
+        color_temperature_precentage = round(
+            self.translate(int(color_temperature), 200, 6500, 1, 100)
+        )
+
         if self._wifi_device:
             _LOGGER.info(
-                "SengledApi: Wifi Color Bulb "
-                + self._friendly_name
-                + " "
-                + self._device_mac
-                + " .Setting ColorTemp"
-            )
-
-            color_temperature_precentage = round(
-                BulbProperty.translate(self, int(colorTemperature), 2000, 6500, 1, 100)
+                "SengledApi: Wifi Color Bulb %s %s Set Color Temperature %s",
+                self._friendly_name,
+                self._device_mac,
+                color_temperature_precentage,
             )
 
             data_color_temperature = {
@@ -166,7 +166,6 @@ class Bulb:
                 "value": str(color_temperature_precentage),
                 "time": int(time.time() * 1000),
             }
-            self._state = True
 
             self._api.publish_mqtt(
                 "wifielement/{}/update".format(self._device_mac),
@@ -174,35 +173,18 @@ class Bulb:
             )
         else:
             _LOGGER.info(
-                "Bulb %s %s Set Color Temperature.",
+                "Bulb %s %s Set Color Temperature %s.",
                 self._friendly_name,
                 self._device_mac,
+                color_temperature_precentage,
             )
 
-            _LOGGER.info("SengledApi: color Temp from HA %s", str(colorTemperature))
-            color_temperature_percentage = round(
-                BulbProperty.translate(
-                    self,
-                    int(colorTemperature),
-                    2000,
-                    6500,
-                    1,
-                    100,
-                )
-            )
-            _LOGGER.info("SengledApi: color Temp %s", color_temperature_percentage)
+            url = HTTPS + self._country + SET_COLOR_TEMPERATURE
 
-            self._just_changed_state = True
-            url = (
-                "https://"
-                + self._country
-                + "-elements.cloud.sengled.com/zigbee/device/deviceSetColorTemperature.json"
-            )
             payload = {
                 "deviceUuid": self._device_mac,
-                "colorTemperature": color_temperature_percentage,
+                "colorTemperature": color_temperature_precentage,
             }
-            self._state = True
 
             loop = asyncio.get_running_loop()
             loop.create_task(
@@ -230,7 +212,6 @@ class Bulb:
                 "value": self.convert_color_HA(color),
                 "time": int(time.time() * 1000),
             }
-            self._state = True
 
             self._api.publish_mqtt(
                 "wifielement/{}/update".format(self._device_mac),
@@ -250,11 +231,7 @@ class Bulb:
 
             _LOGGER.info("SengledApi: Set Color R %s G %s B %s", int(a), int(b), int(c))
 
-            url = (
-                "https://"
-                + self._country
-                + "-elements.cloud.sengled.com/zigbee/device/deviceSetGroup.json"
-            )
+            url = HTTPS + self._country + SET_GROUP
 
             payload = {
                 "cmdId": 129,
@@ -272,6 +249,7 @@ class Bulb:
             )
 
     def is_on(self):
+        """Get State"""
         return self._state
 
     async def async_update(self):
@@ -310,7 +288,11 @@ class Bulb:
                                 (int(items.brightness) / 100) * 255
                             )
                         if self._support_color_temp:
-                            self._color_temperature = int(items.color_temperature)
+                            self._color_temperature = round(
+                                self.translate(
+                                    int(items.color_temperature), 0, 100, 2000, 6500
+                                )
+                            )
                         if self._support_color:
                             self._color = items.color
         else:
@@ -336,7 +318,11 @@ class Bulb:
                                 self._friendly_name = items.name
                                 self._state = items.switch
                                 self._avaliable = items.isOnline
-                                self._device_rssi = items.device_rssi
+                                self._device_rssi = round(
+                                    self.translate(
+                                        int(items.device_rssi), 0, 5, -100, -30
+                                    )
+                                )
                                 # Supported Features
                                 if self._support_brightness:
                                     self._brightness = items.brightness
@@ -382,10 +368,10 @@ class Bulb:
         Set the callback to be called when an attribute is updated.
         callback -- callback
         """
-        self._attribute_update_callback = callback
+        self.attribute_update_callback = callback
 
     @staticmethod
-    def _attribute_to_property(attr):
+    def attribute_to_property(attr):
         attr_map = {
             "consumptionTime": "consumption_time",
             "deviceRssi": "rssi",
@@ -405,3 +391,14 @@ class Bulb:
         for r in ((" ", ""), (",", ":"), ("(", ""), (")", "")):
             sengled_color = sengled_color.replace(*r)
         return sengled_color
+
+    def translate(self, value, left_min, left_max, right_min, right_max):
+        """Figure out how 'wide' each range is"""
+        left_span = left_max - left_min
+        right_span = right_max - right_min
+
+        # Convert the left range into a 0-1 range (float)
+        value_scaled = float(value - left_min) / float(left_span)
+
+        # Convert the 0-1 range into a value in the right range.
+        return right_min + (value_scaled * right_span)
