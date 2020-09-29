@@ -32,18 +32,18 @@ async def async_setup(hass, config):
     conf = config.get(DOMAIN)
     if conf is not None:
         """Set up the SengledApi parent component."""
-        _LOGGER.debug(
+        _LOGGER.info(
             """
     -------------------------------------------------------------------
     Sengled Bulb Home Assistant Integration Created from Config
 
-    Version: v0.1-beta.18
+    Version: v0.2
     This is a custom integration
     If you have any issues with this you need to open an issue here:
     https://github.com/jfarmer08/ha-sengledapi
     -------------------------------------------------------------------"""
         )
-        _LOGGER.debug("""Creating new SengledApi component""")
+        _LOGGER.info("""Creating new SengledApi component""")
 
         sengledapi_account = SengledApi(
             config[DOMAIN].get(CONF_USERNAME),
@@ -59,18 +59,18 @@ async def async_setup(hass, config):
             )
             return False
 
-        _LOGGER.debug("SengledApi Connected to Sengled account")
+        _LOGGER.info("SengledApi Connected to Sengled account")
 
         sengledapi_devices = await sengledapi_account.async_get_devices()
         sengledapiwifi_devices = await sengledapi_account.async_get_wifi_devices()
 
         # Store the logged in account object for the platforms to use.
-        _LOGGER.debug(
+        _LOGGER.info(
             "SengledApi Store the logged in account object for the platforms to use"
         )
         hass.data[DOMAIN] = {"sengledapi_account": sengledapi_account}
 
-        _LOGGER.debug("SengledApi Start up lights, switch and binary sensor components")
+        _LOGGER.info("SengledApi Start up lights, switch and binary sensor components")
         # Start up lights and switch components
         if sengledapi_devices:
             await discovery.async_load_platform(hass, "light", DOMAIN, {}, config)
