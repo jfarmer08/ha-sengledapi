@@ -1,9 +1,8 @@
 """Sengled Bulb Integration."""
 
 
-import logging
-
 import json
+import logging
 import time
 
 _LOGGER = logging.getLogger(__name__)

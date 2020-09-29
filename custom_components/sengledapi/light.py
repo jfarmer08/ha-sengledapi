@@ -2,27 +2,25 @@
 
 """Platform for light integration."""
 
-import logging
 from datetime import timedelta
-
-from .sengledapi.sengledapi import SengledApi
-from .const import ATTRIBUTION, DOMAIN
-
-from homeassistant.const import ATTR_ATTRIBUTION
-from homeassistant.util import color as colorutil
+import logging
 
 # Import the device class from the component that you want to support
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_COLOR_TEMP,
     ATTR_HS_COLOR,
-    ATTR_COLOR_TEMP,
     PLATFORM_SCHEMA,
     SUPPORT_BRIGHTNESS,
     SUPPORT_COLOR,
     SUPPORT_COLOR_TEMP,
     LightEntity,
 )
+from homeassistant.const import ATTR_ATTRIBUTION
+from homeassistant.util import color as colorutil
+
+from .const import ATTRIBUTION, DOMAIN
+from .sengledapi.sengledapi import SengledApi
 
 # Add to support quicker update time. Is this to Fast?
 SCAN_INTERVAL = timedelta(seconds=30)
@@ -168,7 +166,9 @@ class SengledBulb(LightEntity):
             color = colorutil.color_hs_to_RGB(hs[0], hs[1])
             await self._light.async_set_color(color)
         if ATTR_COLOR_TEMP in kwargs:
-            color_temp = colorutil.color_temperature_mired_to_kelvin(kwargs[ATTR_COLOR_TEMP])
+            color_temp = colorutil.color_temperature_mired_to_kelvin(
+                kwargs[ATTR_COLOR_TEMP]
+            )
             await self._light.async_color_temperature(color_temp)
 
     async def async_turn_off(self, **kwargs):

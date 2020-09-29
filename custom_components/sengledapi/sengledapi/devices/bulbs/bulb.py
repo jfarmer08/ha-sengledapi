@@ -1,15 +1,16 @@
 """Sengled Bulb Integration."""
 
 import asyncio
+import json
+import logging
+import time
+
 from config.custom_components.sengledapi.sengledapi.devices.bulbs.const import (
     HTTPS,
     SET_BRIGHTNESS,
-    SET_GROUP,
     SET_COLOR_TEMPERATURE,
+    SET_GROUP,
 )
-import logging
-import time
-import json
 
 from .bulbproperty import BulbProperty
 
