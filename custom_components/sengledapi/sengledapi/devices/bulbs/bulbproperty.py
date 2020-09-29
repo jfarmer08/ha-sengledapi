@@ -114,9 +114,9 @@ class BulbProperty:
 
     @property
     def switch(self):
-        """Whether or not the bulb is online."""
+        """Whether or not the bulb is switched on."""
         if self._wifi:
-            """Whether or not the bulb is switched on."""
+
             for attr in self._attributes:
                 if attr["name"] == "switch":
                     return True if attr["value"] == "1" else False
@@ -132,8 +132,6 @@ class BulbProperty:
             for attr in self._attributes:
                 if attr["name"] == "online":
                     return True if attr["value"] == "1" else False
-
-            return False
         else:
             if self._attributes:
                 online = self._info["attributes"]["isOnline"]
@@ -145,10 +143,8 @@ class BulbProperty:
         if self._wifi:
             """Type code, e.g. 'wifia19-L'."""
             for attr in self._attributes:
-                if attr["name"] == "type_code":
+                if attr["name"] == "typeCode":
                     return attr["value"]
-
-            return self._type_code
         else:
             if self._attributes:
                 typecode = self._info["attributes"]["typeCode"]
@@ -162,8 +158,6 @@ class BulbProperty:
             for attr in self._attributes:
                 if attr["name"] == "product_code":
                     return attr["value"]
-
-            return ""
         else:
             if self._attributes["productCode"]:
                 productCode = self._info["attributes"]["productCode"]
@@ -176,8 +170,6 @@ class BulbProperty:
             for attr in self._attributes:
                 if attr["version"] == "version":
                     return attr["value"]
-
-            return ""
         else:
             if self._attributes["version"]:
                 version = self._info["attributes"]["version"]
@@ -206,19 +198,19 @@ class BulbProperty:
     def rgb_color_r(self):
         if self._attributes["rgbColorR"]:
             rgbColorR = self._info["attributes"]["rgbColorR"]
-            return int(rgbColorR)
+            return rgbColorR
 
     @property
     def rgb_color_g(self):
         if self._attributes["rgbColorG"]:
             rgbColorG = self._info["attributes"]["rgbColorG"]
-            return int(rgbColorG)
+            return rgbColorG
 
     @property
     def rgb_color_b(self):
         if self._attributes["rgbColorB"]:
             rgbColorB = self._info["attributes"]["rgbColorB"]
-            return int(rgbColorB)
+            return rgbColorB
 
     ###Wifi only Property
     @property
@@ -228,8 +220,7 @@ class BulbProperty:
         for attr in self._attributes:
             if attr["name"] == "color":
                 return attr["value"]
-
-        return ""
+        return "0:0:0"
 
     @property
     def consumption_time(self):

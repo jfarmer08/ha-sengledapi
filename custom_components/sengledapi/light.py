@@ -52,7 +52,7 @@ class SengledBulb(LightEntity):
 
     def __init__(self, light):
         """Initialize a Sengled Bulb."""
-        self.light = light
+        self._light = light
         self._name = light._friendly_name
         self._state = light._state
         self._brightness = light._brightness
@@ -111,21 +111,21 @@ class SengledBulb(LightEntity):
     @property
     def color_temp(self):
         """Return the color_temp of the light."""
-        if self._color_temperature is not None or 0:
+        if self._color_temperature is None:
+            return colorutil.color_temperature_kelvin_to_mired(2000)
+        else:
             return colorutil.color_temperature_kelvin_to_mired(self._color_temperature)
 
     @property
     def hs_color(self):
         """Return the hs_color of the light."""
-        if self._color is not None:
-            if self._wifi_device:
-                a, b, c = self._color.split(":")
-                return colorutil.color_RGB_to_hs(int(a), int(b), int(c))
-            else:
-                return colorutil.color_RGB_to_hs(
-                    self._rgb_color_r, self._rgb_color_g, self._rgb_color_b
-                )
-        return ""
+        if self._wifi_device:
+            a, b, c = self._color.split(":")
+            return colorutil.color_RGB_to_hs(int(a), int(b), int(c))
+        else:
+            return colorutil.color_RGB_to_hs(
+                self._rgb_color_r, self._rgb_color_g, self._rgb_color_b
+            )
 
     @property
     def brightness(self):
@@ -139,8 +139,17 @@ class SengledBulb(LightEntity):
 
     @property
     def supported_features(self):
-        features = SUPPORT_BRIGHTNESS
+        """Flags Supported Features"""
+        features = ""
+        if self._support_brightness:
+            features = SUPPORT_BRIGHTNESS
         if self._support_color_temp and self._support_brightness:
+            features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP
+        if (
+            self._support_brightness
+            and self._support_color_temp
+            and self._support_color
+        ):
             features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP | SUPPORT_COLOR
         return features
 
@@ -151,39 +160,39 @@ class SengledBulb(LightEntity):
             and ATTR_HS_COLOR not in kwargs
             and ATTR_COLOR_TEMP not in kwargs
         ):
-            await self.light.async_toggle(ON)
+            await self._light.async_toggle(ON)
         if ATTR_BRIGHTNESS in kwargs:
-            await self.light.async_set_brightness(kwargs[ATTR_BRIGHTNESS])
+            await self._light.async_set_brightness(kwargs[ATTR_BRIGHTNESS])
         if ATTR_HS_COLOR in kwargs:
             hs = kwargs.get(ATTR_HS_COLOR)
             color = colorutil.color_hs_to_RGB(hs[0], hs[1])
-            await self.light.async_set_color(color)
+            await self._light.async_set_color(color)
         if ATTR_COLOR_TEMP in kwargs:
             color_temp = colorutil.color_temperature_mired_to_kelvin(
                 kwargs[ATTR_COLOR_TEMP]
             )
-            await self.light.async_color_temperature(color_temp)
+            await self._light.async_color_temperature(color_temp)
 
     async def async_turn_off(self, **kwargs):
         """Instruct the light to turn off."""
-        await self.light.async_toggle(OFF)
+        await self._light.async_toggle(OFF)
 
     async def async_update(self):
         """Fetch new state data for this light.
         This is the only method that should fetch new data for Home Assistant.
         """
-        await self.light.async_update()
-        self._state = self.light.is_on()
-        self._avaliable = self.light._avaliable
-        self._state = self.light._state
-        self._brightness = self.light._brightness
-        self._color_temperature = self.light._color_temperature
-        self._color = self.light._color
-        self._rgb_color_r = self.light._rgb_color_r
-        self._rgb_color_g = self.light._rgb_color_g
-        self._rgb_color_b = self.light._rgb_color_b
-        self._device_rssi = self.light._device_rssi
-        self._alarm_status = self.light._alarm_status
+        await self._light.async_update()
+        self._state = self._light.is_on()
+        self._avaliable = self._light._avaliable
+        self._state = self._light._state
+        self._brightness = self._light._brightness
+        self._color_temperature = self._light._color_temperature
+        self._color = self._light._color
+        self._rgb_color_r = self._light._rgb_color_r
+        self._rgb_color_g = self._light._rgb_color_g
+        self._rgb_color_b = self._light._rgb_color_b
+        self._device_rssi = self._light._device_rssi
+        self._alarm_status = self._light._alarm_status
 
     @property
     def device_info(self):

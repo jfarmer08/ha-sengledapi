@@ -5,7 +5,6 @@ from .devices.bulbs.bulbproperty import BulbProperty
 from .devices.request import Request
 
 from .devices.bulbs.bulb import Bulb
-from .devices.bulbs.wifi_bulb import WifiBulb
 
 from .devices.switch import Switch
 
@@ -47,14 +46,14 @@ SESSION = SengledSession()
 
 class SengledApi:
     def __init__(self, user_name, password, country, wifi):
-        _LOGGER.debug("Sengled Api initializing.")
+        _LOGGER.info("Sengled Api initializing.")
         SESSION.username = user_name
         SESSION.password = password
         SESSION.countryCode = country
         SESSION.wifi = wifi
 
     async def async_init(self):
-        _LOGGER.debug("Sengled Api initializing async.")
+        _LOGGER.info("Sengled Api initializing async.")
         self._access_token = await self.async_login(
             SESSION.username, SESSION.password, SESSION.device_id
         )
@@ -64,7 +63,7 @@ class SengledApi:
         Log user into server.
         Returns True on success, False on failure.
         """
-        _LOGGER.debug("Sengledapi: async_login")
+        _LOGGER.info("Sengledapi: Login")
 
         if SESSION.jsession_id:
             if not self.async_is_session_timeout():
@@ -93,10 +92,6 @@ class SengledApi:
             await self.async_get_server_info()
 
             if not SESSION.mqtt_client:
-                _LOGGER.debug(
-                    "SengledApi: Login initialize mqtt client %s",
-                    str(SESSION.mqtt_client),
-                )
                 self.initialize_mqtt()
             else:
                 self.reinitialize_mqtt()
@@ -113,7 +108,7 @@ class SengledApi:
         Determine whether or not the session has timed out.
         Returns True if timed out, False otherwise.
         """
-        _LOGGER.debug("SengledApi: async_is_session_timeout")
+        _LOGGER.info("SengledApi: Session Timeout")
 
         if not SESSION.jsession_id:
             return True
@@ -137,7 +132,6 @@ class SengledApi:
     async def async_get_server_info(self):
         """Get secondary server info from the primary."""
         if not SESSION.jsession_id:
-            _LOGGER.debug("SengledApi: Access token is null")
             return
         url = "https://life2.cloud.sengled.com/life2/server/getServerInfo.json"
         payload = {}
@@ -145,6 +139,7 @@ class SengledApi:
         data = await self.async_do_request(url, payload, SESSION.jsession_id)
 
         _LOGGER.debug("SengledApi: Get MQTT Server Info" + str(data))
+
         if "inceptionAddr" not in data or not data["inceptionAddr"]:
             return
 
@@ -169,16 +164,16 @@ class SengledApi:
             data = await self.async_do_request(url, payload, SESSION.jsession_id)
             if "deviceList" not in data or not data["deviceList"]:
                 return SESSION.wifi_devices
-            for d in data["deviceList"]:
+            for devices in data["deviceList"]:
                 found = False
 
                 for dev in SESSION.wifi_devices:
-                    if dev.uuid == d["deviceUuid"]:
+                    if dev.uuid == devices["deviceUuid"]:
                         found = True
                         break
                 if not found:
-                    _LOGGER.debug("SengledApi: Get Wifi Mqtt Devices %s", d)
-                    SESSION.wifi_devices.append(BulbProperty(self, d, True))
+                    _LOGGER.debug("SengledApi: Get Wifi Mqtt Devices %s", devices)
+                    SESSION.wifi_devices.append(BulbProperty(self, devices, True))
         return SESSION.wifi_devices
 
     async def async_get_devices(self):
@@ -195,10 +190,9 @@ class SengledApi:
         return SESSION.devices
 
     async def discover_devices(self):
-        _LOGGER.debug("SengledApi: List All Bulbs.")
+        _LOGGER.info("SengledApi: List All Bulbs.")
         bulbs = []
         for device in await self.async_get_devices():
-            _LOGGER.debug("SengledApi: List Device return %s", device)
             bulbs.append(
                 Bulb(
                     self,
@@ -212,31 +206,32 @@ class SengledApi:
                     device.support_brightness,
                     SESSION.jsession_id,
                     SESSION.countryCode,
+                    False,
                 )
             )
         if SESSION.wifi:
             for device in await self.async_get_wifi_devices():
-                _LOGGER.debug("SengledApi: List Wifi Device return %s", device)
-                if device.support_color_temp:
-                    bulbs.append(
-                        WifiBulb(
-                            self,
-                            device.uuid,
-                            device.name,
-                            device.switch,
-                            device.typeCode,
-                            device.isOnline,
-                            device.support_color,
-                            device.support_color_temp,
-                            device.support_brightness,
-                            SESSION.jsession_id,
-                            SESSION.countryCode,
-                        )
+                bulbs.append(
+                    Bulb(
+                        self,
+                        device.uuid,
+                        device.name,
+                        device.switch,
+                        device.typeCode,
+                        device.isOnline,
+                        device.support_color,
+                        device.support_color_temp,
+                        device.support_brightness,
+                        SESSION.jsession_id,
+                        SESSION.countryCode,
+                        True,
+
                     )
+                )
         return bulbs
 
     async def async_list_switch(self):
-        _LOGGER.debug("Sengled Api listing switches.")
+        _LOGGER.info("Sengled Api listing switches.")
         switch = []
         # This is my room list
         for device in await self.async_get_devices():
@@ -245,7 +240,7 @@ class SengledApi:
                 for switch in device["lampInfos"]:
                     if switch["attributes"]["productCode"] == "E1E-G7F":
                         switch.append(
-                            SengledSwitch(
+                            Switch(
                                 self,
                                 device["deviceUuid"],
                                 device["attributes"]["name"],
@@ -266,7 +261,7 @@ class SengledApi:
 
     ###################################Login Request only###############################
     async def async_do_login_request(self, url, payload):
-        _LOGGER.debug("async_do_login_request - Sengled Api doing request.")
+        _LOGGER.info("SengledApi: Login Request.")
         try:
             return await Request(url, payload).async_get_login_response()
         except:
@@ -274,7 +269,7 @@ class SengledApi:
 
     ######################################Session Timeout#######################################
     async def async_do_is_session_timeout_request(self, url, payload):
-        _LOGGER.debug("async_do_login_request - Sengled Api doing request.")
+        _LOGGER.info("SengledApi: Sengled Api doing request.")
         try:
             return await Request(url, payload).async_is_session_timeout_response(
                 SESSION.jsession_id
@@ -286,17 +281,13 @@ class SengledApi:
 
     #########################MQTT#################################################
     def initialize_mqtt(self):
-        _LOGGER.debug("SengledApi: Initialize the MQTT connection")
+        _LOGGER.info("SengledApi: Initialize the MQTT connection")
         """Initialize the MQTT connection."""
         if not SESSION.jsession_id:
-            _LOGGER.debug("SengledApi: MQTT no Accesstoken")
             return False
 
-        def on_message(client, userdata, msg):
+        def on_message(api, userdata, msg):
             if msg.topic in SESSION.subscribe:
-                _LOGGER.debug(str(SESSION.subscribe))
-                _LOGGER.debug(str(userdata))
-                _LOGGER.debug(str(SESSION.subscribe[msg.topic](msg.payload)))
                 SESSION.subscribe[msg.topic](msg.payload)
 
         SESSION.mqtt_client = mqtt.Client(
@@ -317,14 +308,13 @@ class SengledApi:
             keepalive=30,
         )
         SESSION.mqtt_client.loop_start()
-        _LOGGER.debug("SengledApi: Start mqtt loop")
+        _LOGGER.info("SengledApi: Start mqtt loop")
         return True
 
     def reinitialize_mqtt(self):
         """Re-initialize the MQTT connection."""
-        _LOGGER.debug("SengledApi: Re-initialize the MQTT connection")
+        _LOGGER.info("SengledApi: Re-initialize the MQTT connection")
         if SESSION.mqtt_client is None or not SESSION.jsession_id:
-            _LOGGER.debug("MQTT _reinitialize_mqtt no Accesstoken yet")
             return False
 
         SESSION.mqtt_client.loop_stop()
@@ -339,7 +329,7 @@ class SengledApi:
         SESSION.mqtt_client.loop_start()
 
         for topic in SESSION.subscribe:
-            self._subscribe_mqtt(topic, SESSION.subscribe[topic])
+            self.subscribe_mqtt(topic, SESSION.subscribe[topic])
 
         return True
 
@@ -350,7 +340,7 @@ class SengledApi:
         payload -- message to send
         Returns True if publish succeeded, False if not.
         """
-        _LOGGER.debug("SengledApi: Publish MQTT message")
+        _LOGGER.info("SengledApi: Publish MQTT message")
         if SESSION.mqtt_client is None:
             return False
 
@@ -365,7 +355,7 @@ class SengledApi:
         return False
 
     def subscribe_mqtt(self, topic, callback):
-        _LOGGER.debug("SengledApi: Subscribe to an  MQTT Topic")
+        _LOGGER.info("SengledApi: Subscribe to an  MQTT Topic")
         """
         Subscribe to an MQTT topic.
         topic -- topic to subscribe to
@@ -375,7 +365,7 @@ class SengledApi:
             return False
 
         r = SESSION.mqtt_client.subscribe(topic)
-        _LOGGER.debug("SengledApi: Subscribe Mqtt %s", str(r))
+        _LOGGER.info("SengledApi: Subscribe Mqtt %s", str(r))
         if r[0] != mqtt.MQTT_ERR_SUCCESS:
             return False
 
@@ -383,7 +373,7 @@ class SengledApi:
         return True
 
     def unsubscribe_mqtt(self, topic, callback):
-        _LOGGER.debug("SengledApi: Unsubscribe from an MQTT topic")
+        _LOGGER.info("SengledApi: Unsubscribe from an MQTT topic")
         """
         Unsubscribe from an MQTT topic.
         topic -- topic to unsubscribe from
