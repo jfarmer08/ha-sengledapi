@@ -5,7 +5,7 @@ import json
 import logging
 import time
 
-from config.custom_components.sengledapi.sengledapi.devices.bulbs.const import (
+from .const import (
     HTTPS,
     SET_BRIGHTNESS,
     SET_COLOR_TEMPERATURE,
