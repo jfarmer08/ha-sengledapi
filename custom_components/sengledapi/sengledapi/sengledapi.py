@@ -1,23 +1,19 @@
 #!/usr/bin/python3
 """Sengled Bulb Integration."""
-# from .devices.sengled_wifi_bulb_property import SengledWifiBulbProperty
-from .devices.bulbs.bulbproperty import BulbProperty
-from .devices.request import Request
-
-from .devices.bulbs.bulb import Bulb
-
-from .devices.switch import Switch
-
-from .devices.exceptions import SengledApiAccessToken
-
+import json
 import logging
-
+import time
 from urllib.parse import urlparse
 from uuid import uuid4
+
 import paho.mqtt.client as mqtt
 import requests
-import time
-import json
+
+from .devices.bulbs.bulb import Bulb
+from .devices.bulbs.bulbproperty import BulbProperty
+from .devices.exceptions import SengledApiAccessToken
+from .devices.request import Request
+from .devices.switch import Switch
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -225,7 +221,6 @@ class SengledApi:
                         SESSION.jsession_id,
                         SESSION.countryCode,
                         True,
-
                     )
                 )
         return bulbs

@@ -1,11 +1,12 @@
 """Sengled Bulb Integration."""
 
-import requests
 import json
-import aiohttp
-import ssl
-import certifi
 import logging
+import ssl
+
+import aiohttp
+import certifi
+import requests
 
 from .exceptions import SengledApiAccessToken
 

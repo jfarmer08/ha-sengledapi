@@ -4,12 +4,12 @@ import logging
 
 import voluptuous as vol
 
-from .sengledapi.sengledapi import SengledApi
-from .const import DOMAIN, CONF_COUNTRY, CONF_TYPE
-
 from homeassistant.const import CONF_DEVICES, CONF_PASSWORD, CONF_TIMEOUT, CONF_USERNAME
 from homeassistant.helpers import discovery
 import homeassistant.helpers.config_validation as cv
+
+from .const import CONF_COUNTRY, CONF_TYPE, DOMAIN
+from .sengledapi.sengledapi import SengledApi
 
 _LOGGER = logging.getLogger(__name__)
 
