@@ -124,7 +124,7 @@ class SengledBulb(LightEntity):
             return colorutil.color_RGB_to_hs(int(a), int(b), int(c))
         else:
             return colorutil.color_RGB_to_hs(
-                self._rgb_color_r, self._rgb_color_g, self._rgb_color_b
+                int(self._rgb_color_r), int(self._rgb_color_g), int(self._rgb_color_b)
             )
 
     @property
@@ -168,9 +168,7 @@ class SengledBulb(LightEntity):
             color = colorutil.color_hs_to_RGB(hs[0], hs[1])
             await self._light.async_set_color(color)
         if ATTR_COLOR_TEMP in kwargs:
-            color_temp = colorutil.color_temperature_mired_to_kelvin(
-                kwargs[ATTR_COLOR_TEMP]
-            )
+            color_temp = colorutil.color_temperature_mired_to_kelvin(kwargs[ATTR_COLOR_TEMP])
             await self._light.async_color_temperature(color_temp)
 
     async def async_turn_off(self, **kwargs):
