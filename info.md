@@ -17,18 +17,11 @@ You can find [Supported Products](https://github.com/jfarmer08/ha-sengledapi/wik
 ### Potential Downsides
 
 * This is an unofficial implementation of the api and therefore may be disabled or broken at anytime by Sengled
-* I only have Element Classic A19 Kit (Light bulbs + Hub) to test https://us.sengled.com/products/element-classic-kit
-* An update may break them without my knowledge. **Please use the betas as they become avaliable**
+* I only have Element Classic A19 Kit (Light bulbs + Hub) https://us.sengled.com/products/element-classic-kit and the Wifi LED Multicolor A19 Bulb https://us.sengled.com/products/sengled-smart-wi-fi-led-multicolor-a19-bulb to test.
 
-**In this Update**
-  * Wifi bulbs are now supported by adding ```wifi: true``` to your configuration. All functions at this time are not supported.
-  # Only 2 wifi bulbs are supported at this time
-    1. Sengled Smart Wi-Fi LED Multicolor A19 Bulb : wificolora19
-    2. Sengled Smart Wi-Fi LED Daylight A19 Bulb : wifia19
+* An update from Sengled may break this integration without my knowledge. **Please use the betas as they become avaliable**
 
-      # Supported Functions of Wifi Bulbs
-        1. View bulbs on/off state, brightness, Color, and Color Temp
-        2. Control bulbs on/off state, brightness, Color, and Color Temp
+** Wifi bulbs are supported by adding ```wifi: true``` to your configuration. All functions should be supported.
 
 ## Installation (HACS) - Highly Recommended
 
@@ -38,7 +31,7 @@ You can find [Supported Products](https://github.com/jfarmer08/ha-sengledapi/wik
 4. Restart HA
 
 ## Installation (Manual)
-
+**Note: "requirements": ["paho-mqtt==1.5.0"]
 1. Download this repository as a ZIP (green button, top right) and unzip the archive
 2. Copy `/custom_components/sengledapi` to your `<config_dir>/` directory
    * On Hassio the final location will be `/config/custom_components/sengledapi`
@@ -50,6 +43,7 @@ Country Code example:
 * country: us
 * country: au
 * country: it
+* country: eu
 
 ## Configuration
 
