@@ -17,6 +17,14 @@ from .bulbproperty import BulbProperty
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.info("SengledApi: Initializing Bulbs")
 
+OFF = "0"
+COLOR_CYCLE = "1"
+RANDMON_COLOR = "2"
+RYTHUM = "3"
+CHRISTMAS = "4"
+HALLOWEEN = "5"
+FESTIVAL = "6"
+
 
 class Bulb:
     def __init__(
@@ -41,7 +49,7 @@ class Bulb:
         self._friendly_name = friendly_name
         self._state = state
         self._avaliable = isonline
-        self._just_changed_state = True
+        self._just_changed_state = False
         self._device_model = device_model
         self._device_rssi = -30
         self._brightness = 255
@@ -51,29 +59,28 @@ class Bulb:
         self._rgb_color_g = 255
         self._rgb_color_b = 255
         self._alarm_status = 0
+        self._effect_status = 0
+        self._neon_status = 0
         self._wifi_device = wifi
         self._support_color = support_color
         self._support_color_temp = support_color_temp
         self._support_brightness = support_brightness
         self._jsession_id = jsession_id
         self._country = country
-        # self._api._subscribe_mqtt(
-        #    "wifielement/{}/status".format(self._device_mac),
-        #    self.update_status,
-        # )
+        self._api.subscribe_mqtt(
+            "wifielement/{}/status".format(self._device_mac),
+            self.update_status,
+        )
 
     async def async_toggle(self, onoff):
         """Toggle Bulb on or off"""
-        if onoff == "1":
-            self._state = True
-        else:
-            self._state = False
         if self._wifi_device:
             _LOGGER.info(
                 "SengledApi: Wifi Bulb %s %s turning on.",
                 self._friendly_name,
                 self._device_mac,
             )
+
             data = {
                 "dn": self._device_mac,
                 "type": "switch",
@@ -85,12 +92,19 @@ class Bulb:
                 "wifielement/{}/update".format(self._device_mac),
                 json.dumps(data),
             )
+            if onoff == "1":
+                self._state = True
+                self._just_changed_state = True
+            else:
+                self._state = False
+                self._just_changed_state = True
         else:
             _LOGGER.info(
                 "SengledApi: Bulb %s %s turning on.",
                 self._friendly_name,
                 self._device_mac,
             )
+
             url = (
                 HTTPS
                 + self._country
@@ -103,6 +117,12 @@ class Bulb:
             loop.create_task(
                 self._api.async_do_request(url, payload, self._jsession_id)
             )
+            if onoff == "1":
+                self._state = True
+                self._just_changed_state = True
+            else:
+                self._state = False
+                self._just_changed_state = True
 
     async def async_set_brightness(self, brightness):
         """Set Bulb Brightness"""
@@ -249,33 +269,84 @@ class Bulb:
                 self._api.async_do_request(url, payload, self._jsession_id)
             )
 
+    async def async_set_effect_status(self, effect_status):
+        """Set the Effect Status"""
+        _LOGGER.info(
+            "Wifi Bulb %s %s setting Effect. %s",
+            self._friendly_name,
+            self._device_mac,
+            self.convert_effect_status(effect_status),
+        )
+
+        data_effect = {
+            "dn": self._device_mac,
+            "type": "effectStatus",
+            "value": self.convert_effect_status(effect_status),
+            "time": int(time.time() * 1000),
+        }
+        data_color_mode = {
+            "dn": "B0:F8:93:B4:6F:7B",
+            "type": "colorMode",
+            "value": "1",
+            "time": "101694",
+        }
+        _LOGGER.debug(json.dumps([data_effect]))
+        self._api.publish_mqtt(
+            "wifielement/{}/update".format(self._device_mac),
+            json.dumps([data_effect, data_color_mode]),
+        )
+
+    async def async_set_neon_status(self, neon_status):
+        """Set the neon status"""
+        _LOGGER.info(
+            "Wifi Bulb %s %s setting Neon.",
+            self._friendly_name,
+            self._device_mac,
+        )
+
+        _LOGGER.info(
+            "SengledApi: Wifi Color Bulb %s %s setting Neon Status %s",
+            self._friendly_name,
+            self._device_mac,
+            str(neon_status),
+        )
+
+        data_neon = {
+            "dn": self._device_mac,
+            "type": "neonStatus",
+            "value": str(neon_status),
+            "time": int(time.time() * 1000),
+        }
+
+        self._api.publish_mqtt(
+            "wifielement/{}/update".format(self._device_mac),
+            json.dumps(data_neon),
+        )
+
     def is_on(self):
         """Get State"""
         return self._state
 
     async def async_update(self):
-        if self._wifi_device:
-            _LOGGER.info(
-                "SengledApi: Wifi Bulb "
-                + self._friendly_name
-                + " "
-                + self._device_mac
-                + " updating."
-            )
-            if self._just_changed_state:
-                self._just_changed_state = False
-            else:
+        _LOGGER.info("Just changed State %s", self._just_changed_state)
+        if self._just_changed_state:
+            self._just_changed_state = False
+        else:
+            if self._wifi_device:
+                _LOGGER.info(
+                    "SengledApi: Wifi Bulb %s %s is updating",
+                    self._friendly_name,
+                    self._device_mac,
+                )
+
                 bulbs = []
                 url = "https://life2.cloud.sengled.com/life2/device/list.json"
                 payload = {}
 
                 data = await self._api.async_do_request(url, payload, self._jsession_id)
 
-                _LOGGER.info(
-                    "SengledApi: Wifi Bulb " + self._friendly_name + " updating."
-                )
                 for item in data["deviceList"]:
-                    _LOGGER.debug("SengledApi: Wifi Bulb update return " + str(item))
+                    _LOGGER.debug("SengledApi: Wifi Bulb update return %s", str(item))
                     bulbs.append(BulbProperty(self, item, True))
                 for items in bulbs:
                     if items.uuid == self._device_mac:
@@ -283,6 +354,8 @@ class Bulb:
                         self._state = items.switch
                         self._avaliable = items.isOnline
                         self._device_rssi = items.device_rssi
+                        self._effect_status = items.effect_status
+                        self._neon_status = items.neon_status
                         # Supported Features
                         if self._support_brightness:
                             self._brightness = round(
@@ -296,48 +369,53 @@ class Bulb:
                             )
                         if self._support_color:
                             self._color = items.color
-        else:
-            _LOGGER.info(
-                "Sengled Bulb "
-                + self._friendly_name
-                + " "
-                + self._device_mac
-                + " updating."
-            )
-            if self._just_changed_state:
-                self._just_changed_state = False
+
             else:
-                url = "https://element.cloud.sengled.com/zigbee/device/getDeviceDetails.json"
-                payload = {}
-                bulbs = []
-                data = await self._api.async_do_request(url, payload, self._jsession_id)
-                for item in data["deviceInfos"]:
-                    for devices in item["lampInfos"]:
-                        bulbs.append(BulbProperty(self, devices, False))
-                        for items in bulbs:
-                            if items.uuid == self._device_mac:
-                                self._friendly_name = items.name
-                                self._state = items.switch
-                                self._avaliable = items.isOnline
-                                self._device_rssi = round(
-                                    self.translate(
-                                        int(items.device_rssi), 0, 5, -100, -30
+                _LOGGER.info(
+                    "Sengled Bulb "
+                    + self._friendly_name
+                    + " "
+                    + self._device_mac
+                    + " updating."
+                )
+                if self._just_changed_state:
+                    self._just_changed_state = False
+                else:
+                    url = "https://element.cloud.sengled.com/zigbee/device/getDeviceDetails.json"
+                    payload = {}
+                    bulbs = []
+                    data = await self._api.async_do_request(
+                        url, payload, self._jsession_id
+                    )
+                    for item in data["deviceInfos"]:
+                        for devices in item["lampInfos"]:
+                            bulbs.append(BulbProperty(self, devices, False))
+                            for items in bulbs:
+                                if items.uuid == self._device_mac:
+                                    self._friendly_name = items.name
+                                    self._state = items.switch
+                                    self._avaliable = items.isOnline
+                                    self._device_rssi = round(
+                                        self.translate(
+                                            int(items.device_rssi), 0, 5, -100, -30
+                                        )
                                     )
-                                )
-                                # Supported Features
-                                if self._support_brightness:
-                                    self._brightness = items.brightness
-                                if self._support_color:
-                                    self._rgb_color_b = items.rgb_color_b
-                                    self._rgb_color_g = items.rgb_color_g
-                                    self._rgb_color_r = items.rgb_color_r
-                                if self._support_color_temp:
-                                    _LOGGER.debug(
-                                        "color temp %s", items.color_temperature
-                                    )
-                                    self._color_temperature = items.color_temperature
-                                if items.typeCode == "E13-N11":
-                                    self._alarm_status = items.alarm_status
+                                    # Supported Features
+                                    if self._support_brightness:
+                                        self._brightness = items.brightness
+                                    if self._support_color:
+                                        self._rgb_color_b = items.rgb_color_b
+                                        self._rgb_color_g = items.rgb_color_g
+                                        self._rgb_color_r = items.rgb_color_r
+                                    if self._support_color_temp:
+                                        _LOGGER.debug(
+                                            "color temp %s", items.color_temperature
+                                        )
+                                        self._color_temperature = (
+                                            items.color_temperature
+                                        )
+                                    if items.typeCode == "E13-N11":
+                                        self._alarm_status = items.alarm_status
 
     def update_status(self, message):
         """
@@ -392,6 +470,23 @@ class Bulb:
         for r in ((" ", ""), (",", ":"), ("(", ""), (")", "")):
             sengled_color = sengled_color.replace(*r)
         return sengled_color
+
+    def convert_effect_status(self, effect_status):
+        if effect_status == "Off":
+            effect_status = COLOR_CYCLE
+        elif effect_status == "Color Cycle":
+            effect_status = COLOR_CYCLE
+        if effect_status == "Ramdom Color":
+            effect_status = RANDMON_COLOR
+        if effect_status == "Rythum":
+            effect_status = RYTHUM
+        if effect_status == "Christmas":
+            effect_status = CHRISTMAS
+        if effect_status == "Halloween":
+            effect_status = HALLOWEEN
+        if effect_status == "Festival":
+            effect_status = FESTIVAL
+        return effect_status
 
     def translate(self, value, left_min, left_max, right_min, right_max):
         """Figure out how 'wide' each range is"""

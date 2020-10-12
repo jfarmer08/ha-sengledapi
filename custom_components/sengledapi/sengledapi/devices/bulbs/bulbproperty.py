@@ -7,6 +7,14 @@ import time
 
 _LOGGER = logging.getLogger(__name__)
 
+OFF = "OFF"
+COLOR_CYCLE = "Color Cycle"
+RANDMON_COLOR = "Randmon Color"
+RYTHUM = "Rythum"
+CHRISTMAS = "Christmas"
+HALLOWEEN = "Halloween"
+FESTIVAL = "Festival"
+
 
 class BulbProperty:
     def __init__(self, api, info, wifi):
@@ -201,6 +209,41 @@ class BulbProperty:
             return rgbColorB
 
     ###Wifi only Property
+    @property
+    def effect_status(self):
+        """Effect Status"""
+        for attr in self._attributes:
+            if attr["name"] == "effectStatus":
+                _LOGGER.debug(self.convert_effect_status(attr["value"]))
+                return self.convert_effect_status(attr["value"])
+        return 0
+
+    def convert_effect_status(self, effect_status):
+        _LOGGER.debug(effect_status)
+        if effect_status == "0":
+            effect_status = OFF
+        elif effect_status == "1":
+            effect_status = COLOR_CYCLE
+        if effect_status == "2":
+            effect_status = RANDMON_COLOR
+        if effect_status == "3":
+            effect_status = RYTHUM
+        if effect_status == "4":
+            effect_status = CHRISTMAS
+        if effect_status == "5":
+            effect_status = HALLOWEEN
+        if effect_status == "6":
+            effect_status = FESTIVAL
+        return effect_status
+
+    @property
+    def neon_status(self):
+        """Neon Status"""
+        for attr in self._attributes:
+            if attr["name"] == "neonStatus":
+                return attr["value"]
+        return 0
+
     @property
     def color(self):
         """Bulb color."""

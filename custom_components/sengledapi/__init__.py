@@ -119,10 +119,11 @@ async def async_setup_entry(hass, entry):
     _LOGGER.debug("SengledApi Start up lights, switch and binary sensor components")
     # Start up lights and switch components
     if sengledapi_devices:
-        await discovery.async_load_platform(hass, "light", DOMAIN, {}, config)
+        await discovery.async_load_platform(hass, "light", DOMAIN, {}, entry)
     else:
         _LOGGER.error(
             "SengledApi: SengledApi authenticated but could not find any devices."
         )
 
-    return False
+        return False
+    return True

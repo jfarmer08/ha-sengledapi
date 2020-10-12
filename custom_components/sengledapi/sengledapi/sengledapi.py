@@ -154,6 +154,7 @@ class SengledApi:
         """
         Get list of Wifi connected devices.
         """
+        _LOGGER.debug("SengledApi: Get Wifi Devices.")
         if not SESSION.wifi_devices:
             url = "https://life2.cloud.sengled.com/life2/device/list.json"
             payload = {}
@@ -168,7 +169,6 @@ class SengledApi:
                         found = True
                         break
                 if not found:
-                    _LOGGER.debug("SengledApi: Get Wifi Mqtt Devices %s", devices)
                     SESSION.wifi_devices.append(BulbProperty(self, devices, True))
         return SESSION.wifi_devices
 

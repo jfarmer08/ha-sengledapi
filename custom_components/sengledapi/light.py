@@ -8,12 +8,22 @@ import logging
 # Import the device class from the component that you want to support
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
+    ATTR_EFFECT,
+    ATTR_FLASH,
+    ATTR_TRANSITION,
+    ATTR_WHITE_VALUE,
+    ATTR_HS_COLOR,
     ATTR_COLOR_TEMP,
+    ATTR_EFFECT,
     ATTR_HS_COLOR,
     PLATFORM_SCHEMA,
     SUPPORT_BRIGHTNESS,
     SUPPORT_COLOR,
     SUPPORT_COLOR_TEMP,
+    SUPPORT_EFFECT,
+    SUPPORT_FLASH,
+    SUPPORT_TRANSITION,
+    SUPPORT_WHITE_VALUE,
     LightEntity,
 )
 from homeassistant.const import ATTR_ATTRIBUTION
@@ -26,6 +36,13 @@ from .sengledapi.sengledapi import SengledApi
 SCAN_INTERVAL = timedelta(seconds=30)
 ON = "1"
 OFF = "0"
+KEY_EFFECT_OFF = "Off"
+KEY_COLOR_CYCLE = "Color Cycle"
+KEY_RAMDOM_COLOR = "Ramdom Color"
+KEY_RYTHUM = "Rythum"
+KEY_CHRISTMAS = "Christmas"
+KEY_HALLOWEEN = "Halloween"
+KEY_FESTIVAL = "Festival"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -68,6 +85,8 @@ class SengledBulb(LightEntity):
         self._support_color = light._support_color
         self._support_color_temp = light._support_color_temp
         self._support_brightness = light._support_brightness
+        self._effect_list = []
+        self._effect = light._effect_status
 
     @property
     def name(self):
@@ -148,8 +167,28 @@ class SengledBulb(LightEntity):
             and self._support_color_temp
             and self._support_color
         ):
-            features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP | SUPPORT_COLOR
+            features = (
+                SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP | SUPPORT_COLOR | SUPPORT_EFFECT
+            )
         return features
+
+    @property
+    def effect(self):
+        """Return the current effect"""
+        return self._effect
+
+    @property
+    def effect_list(self):
+        """Return List of Supported Effects"""
+        return (
+            KEY_EFFECT_OFF,
+            KEY_CHRISTMAS,
+            KEY_COLOR_CYCLE,
+            KEY_FESTIVAL,
+            KEY_HALLOWEEN,
+            KEY_RYTHUM,
+            KEY_RAMDOM_COLOR,
+        )
 
     async def async_turn_on(self, **kwargs):
         """Turn on or control the light."""
@@ -157,6 +196,7 @@ class SengledBulb(LightEntity):
             ATTR_BRIGHTNESS not in kwargs
             and ATTR_HS_COLOR not in kwargs
             and ATTR_COLOR_TEMP not in kwargs
+            and ATTR_EFFECT not in kwargs
         ):
             await self._light.async_toggle(ON)
         if ATTR_BRIGHTNESS in kwargs:
@@ -170,6 +210,9 @@ class SengledBulb(LightEntity):
                 kwargs[ATTR_COLOR_TEMP]
             )
             await self._light.async_color_temperature(color_temp)
+        if ATTR_EFFECT in kwargs:
+            _LOGGER.info("effects %s", ATTR_EFFECT)
+            await self._light.async_set_effect_status(kwargs[ATTR_EFFECT])
 
     async def async_turn_off(self, **kwargs):
         """Instruct the light to turn off."""
