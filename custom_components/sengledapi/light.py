@@ -86,7 +86,7 @@ class SengledBulb(LightEntity):
         self._support_color_temp = light._support_color_temp
         self._support_brightness = light._support_brightness
         self._effect_list = []
-        self._effect = light._effect_status
+        self._effect_status = light._effect_status
 
     @property
     def name(self):
@@ -175,7 +175,7 @@ class SengledBulb(LightEntity):
     @property
     def effect(self):
         """Return the current effect"""
-        return self._effect
+        return self._effect_status
 
     @property
     def effect_list(self):
@@ -234,6 +234,7 @@ class SengledBulb(LightEntity):
         self._rgb_color_b = self._light._rgb_color_b
         self._device_rssi = self._light._device_rssi
         self._alarm_status = self._light._alarm_status
+        self._effect_status = self._light._effect_status
 
     @property
     def device_info(self):

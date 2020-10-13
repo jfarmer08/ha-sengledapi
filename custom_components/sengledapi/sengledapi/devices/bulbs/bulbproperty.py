@@ -214,7 +214,6 @@ class BulbProperty:
         """Effect Status"""
         for attr in self._attributes:
             if attr["name"] == "effectStatus":
-                _LOGGER.debug(self.convert_effect_status(attr["value"]))
                 return self.convert_effect_status(attr["value"])
         return 0
 

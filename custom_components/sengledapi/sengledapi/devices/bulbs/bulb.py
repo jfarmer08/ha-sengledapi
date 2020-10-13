@@ -59,7 +59,7 @@ class Bulb:
         self._rgb_color_g = 255
         self._rgb_color_b = 255
         self._alarm_status = 0
-        self._effect_status = 0
+        self._effect_status = None
         self._neon_status = 0
         self._wifi_device = wifi
         self._support_color = support_color
@@ -282,18 +282,14 @@ class Bulb:
             "dn": self._device_mac,
             "type": "effectStatus",
             "value": self.convert_effect_status(effect_status),
-            "time": int(time.time() * 1000),
+            "time": int(time.time()),
         }
-        data_color_mode = {
-            "dn": "B0:F8:93:B4:6F:7B",
-            "type": "colorMode",
-            "value": "1",
-            "time": "101694",
-        }
+        self._state = True
+        self._just_changed_state = True
         _LOGGER.debug(json.dumps([data_effect]))
         self._api.publish_mqtt(
             "wifielement/{}/update".format(self._device_mac),
-            json.dumps([data_effect, data_color_mode]),
+            json.dumps(data_effect),
         )
 
     async def async_set_neon_status(self, neon_status):
@@ -354,8 +350,8 @@ class Bulb:
                         self._state = items.switch
                         self._avaliable = items.isOnline
                         self._device_rssi = items.device_rssi
-                        self._effect_status = items.effect_status
-                        self._neon_status = items.neon_status
+                        # self._effect_status = items.effect_status
+                        # self._neon_status = items.neon_status
                         # Supported Features
                         if self._support_brightness:
                             self._brightness = round(
@@ -473,7 +469,7 @@ class Bulb:
 
     def convert_effect_status(self, effect_status):
         if effect_status == "Off":
-            effect_status = COLOR_CYCLE
+            effect_status = OFF
         elif effect_status == "Color Cycle":
             effect_status = COLOR_CYCLE
         if effect_status == "Ramdom Color":
