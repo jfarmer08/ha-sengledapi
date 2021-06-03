@@ -3,6 +3,7 @@
   "name": "Sengled Integration",
   "documentation": "https://github.com/jfarmer08/ha-sengledapi",
   "dependencies": [],
+  "version": "0.2",
   "codeowners": ["@jfarmer08"],
   "requirements": ["paho-mqtt==1.5.0"],
   "icons": [
