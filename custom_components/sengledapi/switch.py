@@ -60,7 +60,7 @@ class SengledSwitch(SwitchDevice):
         return self._device_mac
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return device attributes of the entity."""
         return {
             ATTR_ATTRIBUTION: ATTRIBUTION,

@@ -84,7 +84,7 @@ class SengledBulb(LightEntity):
         return self._avaliable
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return device attributes of the entity."""
         if self._device_model == "E13-N11":
             return {
