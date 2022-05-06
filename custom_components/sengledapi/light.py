@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 
-"""Platform for light integration."""
+"""Platform for light Sengled hintegration."""
 
-from datetime import timedelta
 import logging
+from datetime import timedelta
 
 # Import the device class from the component that you want to support
 from homeassistant.components.light import (
