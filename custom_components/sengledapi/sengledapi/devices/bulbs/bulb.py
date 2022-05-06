@@ -263,7 +263,9 @@ class Bulb:
                 + " updating."
             )
             if self._just_changed_state:
-                self._just_changed_state = False
+                _LOGGER.info(
+                    "SengledApi: Bulb State Change: %s", self._just_changed_state
+                )
             else:
                 bulbs = []
                 url = "https://life2.cloud.sengled.com/life2/device/list.json"
@@ -305,7 +307,10 @@ class Bulb:
                 + " updating."
             )
             if self._just_changed_state:
-                self._just_changed_state = False
+                # self._just_changed_state = False
+                _LOGGER.info(
+                    "SengledApi: Bulb State Change: %s", self._just_changed_state
+                )
             else:
                 url = "https://element.cloud.sengled.com/zigbee/device/getDeviceDetails.json"
                 payload = {}
