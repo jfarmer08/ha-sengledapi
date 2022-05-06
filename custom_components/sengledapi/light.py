@@ -23,7 +23,7 @@ from .const import ATTRIBUTION, DOMAIN
 from .sengledapi.sengledapi import SengledApi
 
 # Add to support quicker update time. Is this to Fast?
-SCAN_INTERVAL = timedelta(seconds=30)
+SCAN_INTERVAL = timedelta(seconds=10)
 ON = "1"
 OFF = "0"
 
