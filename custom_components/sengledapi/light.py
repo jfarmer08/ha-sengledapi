@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 
-"""Platform for light integration."""
+"""Platform for light Sengled hintegration."""
 
-from datetime import timedelta
 import logging
+from datetime import timedelta
 
 # Import the device class from the component that you want to support
 from homeassistant.components.light import (
@@ -23,7 +23,7 @@ from .const import ATTRIBUTION, DOMAIN
 from .sengledapi.sengledapi import SengledApi
 
 # Add to support quicker update time. Is this to Fast?
-SCAN_INTERVAL = timedelta(seconds=30)
+SCAN_INTERVAL = timedelta(seconds=10)
 ON = "1"
 OFF = "0"
 

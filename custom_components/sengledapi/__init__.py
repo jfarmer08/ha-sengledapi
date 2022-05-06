@@ -2,11 +2,11 @@
 
 import logging
 
-import voluptuous as vol
-
-from homeassistant.const import CONF_DEVICES, CONF_PASSWORD, CONF_TIMEOUT, CONF_USERNAME
-from homeassistant.helpers import discovery
 import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
+from homeassistant.const import (CONF_DEVICES, CONF_PASSWORD, CONF_TIMEOUT,
+                                 CONF_USERNAME)
+from homeassistant.helpers import discovery
 
 from .const import CONF_COUNTRY, CONF_TYPE, DOMAIN
 from .sengledapi.sengledapi import SengledApi

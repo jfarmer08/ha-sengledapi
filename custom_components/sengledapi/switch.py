@@ -2,16 +2,15 @@
 
 """Platform for switch integration."""
 import logging
-from .sengledapi.sengledapi import SengledApi
-from . import DOMAIN
-
-import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
-from homeassistant.const import ATTR_ATTRIBUTION
-
+import voluptuous as vol
 # Import the device class from the component that you want to support
 from homeassistant.components.switch import PLATFORM_SCHEMA, SwitchDevice
+from homeassistant.const import ATTR_ATTRIBUTION
+
+from . import DOMAIN
+from .sengledapi.sengledapi import SengledApi
 
 _LOGGER = logging.getLogger(__name__)
 ATTRIBUTION = "Data provided by Sengled"
