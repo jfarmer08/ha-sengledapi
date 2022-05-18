@@ -72,15 +72,18 @@ class SengledBulb(LightEntity):
     @property
     def name(self):
         """Return the display name of this light."""
+        _LOGGER.debug("Light.py Name %s", self._name)
         return self._name
 
     @property
     def unique_id(self):
+        _LOGGER.debug("Light.py unique_id %s", self._device_mac)
         return self._device_mac
 
     @property
     def available(self):
         """Return the connection status of this light"""
+        _LOGGER.debug("Light.py _avaliable %s", self._avaliable)
         return self._avaliable
 
     @property
@@ -95,6 +98,11 @@ class SengledBulb(LightEntity):
                 "rssi": self._device_rssi,
                 "mac": self._device_mac,
                 "alarm status ": self._alarm_status,
+                "color": self._color,
+                "color Temp": self._color_temperature,
+                "color r": self._rgb_color_r,
+                "color g": self._rgb_color_g,
+                "color b": self._rgb_color_b,
             }
         else:
             return {
@@ -104,11 +112,17 @@ class SengledBulb(LightEntity):
                 "device model": self._device_model,
                 "rssi": self._device_rssi,
                 "mac": self._device_mac,
+                "color": self._color,
+                "color Temp": self._color_temperature,
+                "color r": self._rgb_color_r,
+                "color g": self._rgb_color_g,
+                "color b": self._rgb_color_b,
             }
 
     @property
     def color_temp(self):
         """Return the color_temp of the light."""
+        _LOGGER.debug("Light.py color_temp %s", self._color_temperature)
         if self._color_temperature is None:
             return colorutil.color_temperature_kelvin_to_mired(2000)
         else:
@@ -117,6 +131,7 @@ class SengledBulb(LightEntity):
     @property
     def hs_color(self):
         """Return the hs_color of the light."""
+        _LOGGER.debug("Light.py hs_color %s", self._color)
         if self._wifi_device:
             a, b, c = self._color.split(":")
             return colorutil.color_RGB_to_hs(int(a), int(b), int(c))
@@ -128,11 +143,13 @@ class SengledBulb(LightEntity):
     @property
     def brightness(self):
         """Return the brightness of the light."""
+        _LOGGER.debug("Light.py brightness %s", self._brightness)
         return self._brightness
 
     @property
     def is_on(self):
         """Return true if light is on."""
+        _LOGGER.debug("Light.py is_on %s", self._state)
         return self._state
 
     @property

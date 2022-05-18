@@ -53,7 +53,7 @@ class BulbProperty:
             for attr in self._attributes:
                 if attr["name"] == "colorTemperature":
                     return int(attr["value"])
-                return 2000
+                #return 2000
         else:
             if self._attributes["colorTemperature"]:
                 color_temperature = self._info["attributes"]["colorTemperature"]

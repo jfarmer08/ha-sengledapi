@@ -108,15 +108,16 @@ class Bulb:
         """Set Bulb Brightness"""
         if self._wifi_device:
             _LOGGER.info(
-                "Wifi Bulb %s %s setting brightness.",
+                "Wifi Bulb %s %s setting brightness %s, This is from HA ",
                 self._friendly_name,
                 self._device_mac,
+                str(brightness),
             )
 
             brightness_precentage = round((brightness / 255) * 100)
 
             _LOGGER.info(
-                "SengledApi: Wifi Color Bulb %s %s setting Brighness %s",
+                "SengledApi: Wifi Color Bulb %s %s setting Brighness %s, This is what we are setting Sengled API",
                 self._friendly_name,
                 self._device_mac,
                 str(brightness_precentage),
@@ -148,6 +149,12 @@ class Bulb:
             )
 
     async def async_color_temperature(self, color_temperature):
+        _LOGGER.info(
+            "Wifi Bulb %s %s setting color Temperature %s, This is from HA ",
+            self._friendly_name,
+            self._device_mac,
+            str(color_temperature),
+        )
         """Set Color Temperature"""
         color_temperature_precentage = round(
             self.translate(int(color_temperature), 200, 6500, 1, 100)
@@ -155,7 +162,7 @@ class Bulb:
 
         if self._wifi_device:
             _LOGGER.info(
-                "SengledApi: Wifi Color Bulb %s %s Set Color Temperature %s",
+                "SengledApi: Wifi Color Bulb %s %s Set Color Temperature %s, This is what we are setting Sengled API",
                 self._friendly_name,
                 self._device_mac,
                 color_temperature_precentage,
@@ -256,13 +263,11 @@ class Bulb:
     async def async_update(self):
         if self._wifi_device:
             _LOGGER.info(
-                "SengledApi: Wifi Bulb "
-                + self._friendly_name
-                + " "
-                + self._device_mac
-                + " updating."
+                "SengledApi: Wifi Bulb %s %s is updating",
+                self._friendly_name,
+                self._device_mac,
             )
-            if self._just_changed_state:
+            if not self._just_changed_state:
                 _LOGGER.info(
                     "SengledApi: Bulb State Change: %s", self._just_changed_state
                 )
@@ -277,7 +282,7 @@ class Bulb:
                     "SengledApi: Wifi Bulb " + self._friendly_name + " updating."
                 )
                 for item in data["deviceList"]:
-                    _LOGGER.debug("SengledApi: Wifi Bulb update return " + str(item))
+                    _LOGGER.debug("SengledApi: Wifi Bulb update return: %s", str(item))
                     bulbs.append(BulbProperty(self, item, True))
                 for items in bulbs:
                     if items.uuid == self._device_mac:
@@ -291,12 +296,10 @@ class Bulb:
                                 (int(items.brightness) / 100) * 255
                             )
                         if self._support_color_temp:
-                            self._color_temperature = round(
-                                self.translate(
-                                    int(items.color_temperature), 0, 100, 2000, 6500
-                                )
-                            )
+                            _LOGGER.debug("SengledApi: Wifi Bulb Colo Temp: %s", items.color_temperature)
+                            self._color_temperature = round(self.translate(int(items.color_temperature), 0, 100, 2000, 6500))
                         if self._support_color:
+                            _LOGGER.debug("SengledApi: Wifi Bulb Color: %s", items.color)
                             self._color = items.color
         else:
             _LOGGER.info(
