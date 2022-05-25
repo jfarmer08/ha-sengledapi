@@ -47,13 +47,13 @@ Country Code example:
 
 ## Configuration
 
-Add the following to your configuration file.
+Add the following to your configuration file `configuration.yaml`. Update with your own information.
 
 ```yaml
 sengledapi:
-  username: <email for sengled>
-  password: <password for sengled>
-  country: <country>
+  username: sengledusername@gmail.com
+  password: sengledPassword
+  country: us
   wifi: true
 ```
 
