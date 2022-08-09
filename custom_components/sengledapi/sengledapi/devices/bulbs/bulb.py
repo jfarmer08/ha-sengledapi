@@ -310,7 +310,7 @@ class Bulb:
                 + " updating."
             )
             if self._just_changed_state:
-                # self._just_changed_state = False
+                self._just_changed_state = False
                 _LOGGER.info(
                     "SengledApi: Bulb State Change: %s", self._just_changed_state
                 )
