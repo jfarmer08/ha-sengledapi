@@ -7,7 +7,7 @@ You can find [Supported Products](https://github.com/jfarmer08/ha-sengledapi/wik
 
 **The goal is to support all Sengled Bulbs so feel free to buy me coffee.
 
-<a href="https://www.buymeacoffee.com/jfarmer08" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-red.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
+[![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg?style=flat-square&maxAge=2592000)](https://www.paypal.com/paypalme/AllenFarmer)
 
 ### Highlights of what **SengledApi** can do
 
