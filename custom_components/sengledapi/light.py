@@ -11,10 +11,8 @@ from homeassistant.components.light import (
     ATTR_COLOR_TEMP,
     ATTR_HS_COLOR,
     PLATFORM_SCHEMA,
-    SUPPORT_BRIGHTNESS,
-    SUPPORT_COLOR,
-    SUPPORT_COLOR_TEMP,
     LightEntity,
+    ColorMode,
 )
 from homeassistant.const import ATTR_ATTRIBUTION
 from homeassistant.util import color as colorutil
@@ -157,15 +155,15 @@ class SengledBulb(LightEntity):
         """Flags Supported Features"""
         features = 0
         if self._support_brightness:
-            features = SUPPORT_BRIGHTNESS
+            features = ColorMode.BRIGHTNESS
         if self._support_color_temp and self._support_brightness:
-            features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP
+            features = ColorMode.BRIGHTNESS | ColorMode.COLOR_TEMP
         if (
             self._support_brightness
             and self._support_color_temp
             and self._support_color
         ):
-            features = SUPPORT_BRIGHTNESS | SUPPORT_COLOR_TEMP | SUPPORT_COLOR
+            features = ColorMode.BRIGHTNESS | ColorMode.COLOR_TEMP | ColorMode.HS
         return features
 
     async def async_turn_on(self, **kwargs):
