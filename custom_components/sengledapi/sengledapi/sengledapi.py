@@ -343,7 +343,7 @@ class SengledApi:
         _LOGGER.debug("SengledApi: Publish Mqtt %s", str(r))
         try:
             r.wait_for_publish()
-            return r.is_published
+            return r.is_published()
         except ValueError:
             pass
 
