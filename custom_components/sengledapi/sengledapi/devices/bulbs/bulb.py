@@ -89,7 +89,7 @@ class Bulb:
             )
         else:
             _LOGGER.info(
-                "SengledApi: Bulb %s %s turning on.",
+                "SengledApi: Bulb %s %s toggling.",
                 self._friendly_name,
                 self._device_mac,
             )
