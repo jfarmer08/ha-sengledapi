@@ -1,3 +1,8 @@
+
+# I no longer plan on supporting this integration with Home Assistant. If someone would like to take it over please contwct me. 
+
+
+
 # Home Assistant - Sengled Bulb Integration
 
 This is a custom component to allow control of Sengled Bulbs in Homeassistant using the unofficial Sengled API. Please note this mimics the Sengled app and therefore Sengled may cut off access at anytime.
