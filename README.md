@@ -1,5 +1,5 @@
 
-# I no longer plan on supporting this integration with Home Assistant. If someone would like to take it over please contwct me. 
+# I no longer plan on supporting this integration with Home Assistant. If someone would like to take it over please contact me. 
 
 
 
