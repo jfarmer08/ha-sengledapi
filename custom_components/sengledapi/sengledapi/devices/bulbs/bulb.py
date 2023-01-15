@@ -67,6 +67,8 @@ class Bulb:
         if onoff == "1":
             self._state = True
         else:
+            # We don't know what is coming in this parameter and the API is sensitive to other values
+            onoff = "0"
             self._state = False
         if self._wifi_device:
             _LOGGER.info(
@@ -87,7 +89,7 @@ class Bulb:
             )
         else:
             _LOGGER.info(
-                "SengledApi: Bulb %s %s turning on.",
+                "SengledApi: Bulb %s %s toggling.",
                 self._friendly_name,
                 self._device_mac,
             )
