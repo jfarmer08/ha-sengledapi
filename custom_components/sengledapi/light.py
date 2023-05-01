@@ -151,7 +151,7 @@ class SengledBulb(LightEntity):
         return self._state
 
     @property
-    def supported_features(self):
+    def supported_color_modes(self):
         """Flags Supported Features"""
         features = 0
         if self._support_brightness:
