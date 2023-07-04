@@ -11,6 +11,9 @@ from homeassistant.components.light import (
     ATTR_COLOR_TEMP,
     ATTR_HS_COLOR,
     PLATFORM_SCHEMA,
+    SUPPORT_BRIGHTNESS,
+    SUPPORT_COLOR_TEMP,
+    SUPPORT_COLOR,
     LightEntity,
     ColorMode,
 )
@@ -155,18 +158,29 @@ class SengledBulb(LightEntity):
         """Flags Supported Features"""
         features = 0
         if self._support_brightness:
-            features = ColorMode.BRIGHTNESS
-        if self._support_color_temp and self._support_brightness:
-            features = ColorMode.BRIGHTNESS | ColorMode.COLOR_TEMP
-        if (
-            self._support_brightness
-            and self._support_color_temp
-            and self._support_color
-        ):
-            features = ColorMode.BRIGHTNESS | ColorMode.COLOR_TEMP | ColorMode.HS
+            features = SUPPORT_BRIGHTNESS
+        if self._support_color_temp:
+            features = features | SUPPORT_COLOR_TEMP
+        if self._support_color:
+            features = features | SUPPORT_COLOR
+        _LOGGER.debug("supported_features: %s", features)
+        return features
+
+    @property
+    def supported_color_modes(self):
+        """Flags Supported Features"""
+        features = set()
+        if self._support_brightness:
+            features.add(ColorMode.BRIGHTNESS)
+        if self._support_color_temp:
+            features.add(ColorMode.COLOR_TEMP)
+        if self._support_color:
+            features.add(ColorMode.HS)
+        _LOGGER.debug("supported_color_modes: %s", features)
         return features
 
     async def async_turn_on(self, **kwargs):
+        _LOGGER.debug("turn_on kwargs: %s", kwargs)
         """Turn on or control the light."""
         if (
             ATTR_BRIGHTNESS not in kwargs
