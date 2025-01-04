@@ -62,7 +62,7 @@ class SengledApi:
         _LOGGER.info("Sengledapi: Login")
 
         if SESSION.jsession_id:
-            if not self.async_is_session_timeout():
+            if not await self.async_is_session_timeout():
                 return
 
         url = "https://ucenter.cloud.sengled.com/user/app/customer/v2/AuthenCross.json"
@@ -95,7 +95,7 @@ class SengledApi:
         return True
 
     def is_valid_login(self):
-        if SESSION.jsession_id == None:
+        if SESSION.jsession_id is None:
             return False
         return True
 
@@ -148,7 +148,7 @@ class SengledApi:
             SESSION.mqtt_server["host"] = url.netloc
             SESSION.mqtt_server["port"] = 443
             SESSION.mqtt_server["path"] = url.path
-        _LOGGER.debug("SengledApi: Parese MQTT Server Info" + str(url))
+        _LOGGER.debug("SengledApi: Parse MQTT Server Info" + str(url))
 
     async def async_get_wifi_devices(self):
         """
@@ -228,7 +228,6 @@ class SengledApi:
     async def async_list_switch(self):
         _LOGGER.info("Sengled Api listing switches.")
         switch = []
-        # This is my room list
         for device in await self.async_get_devices():
             _LOGGER.debug(device)
             if "lampInfos" in device:
@@ -247,37 +246,35 @@ class SengledApi:
                         )
         return switch
 
-    #######################Do request#######################################################
     async def async_do_request(self, url, payload, jsessionId):
         try:
             return await Request(url, payload).async_get_response(jsessionId)
-        except:
-            return Request(url, payload).get_response(jsessionId)
+        except Exception as e:
+            _LOGGER.error("Error in async_do_request: %s", e)
+            raise
 
-    ###################################Login Request only###############################
     async def async_do_login_request(self, url, payload):
         _LOGGER.info("SengledApi: Login Request.")
         try:
             return await Request(url, payload).async_get_login_response()
-        except:
+        except Exception as e:
+            _LOGGER.error("Error in async_do_login_request: %s", e)
             return Request(url, payload).get_login_response()
 
-    ######################################Session Timeout#######################################
     async def async_do_is_session_timeout_request(self, url, payload):
         _LOGGER.info("SengledApi: Sengled Api doing request.")
         try:
             return await Request(url, payload).async_is_session_timeout_response(
                 SESSION.jsession_id
             )
-        except:
+        except Exception as e:
+            _LOGGER.error("Error in async_do_is_session_timeout_request: %s", e)
             return Request(url, payload).is_session_timeout_response(
                 SESSION.jsession_id
             )
 
-    #########################MQTT#################################################
     def initialize_mqtt(self):
         _LOGGER.info("SengledApi: Initialize the MQTT connection")
-        """Initialize the MQTT connection."""
         if not SESSION.jsession_id:
             return False
 
@@ -307,7 +304,6 @@ class SengledApi:
         return True
 
     def reinitialize_mqtt(self):
-        """Re-initialize the MQTT connection."""
         _LOGGER.info("SengledApi: Re-initialize the MQTT connection")
         if SESSION.mqtt_client is None or not SESSION.jsession_id:
             return False
@@ -329,12 +325,6 @@ class SengledApi:
         return True
 
     def publish_mqtt(self, topic, payload=None):
-        """
-        Publish an MQTT message.
-        topic -- topic to publish the message on
-        payload -- message to send
-        Returns True if publish succeeded, False if not.
-        """
         _LOGGER.info("SengledApi: Publish MQTT message")
         if SESSION.mqtt_client is None:
             return False
@@ -343,19 +333,14 @@ class SengledApi:
         _LOGGER.debug("SengledApi: Publish Mqtt %s", str(r))
         try:
             r.wait_for_publish()
-            return r.is_published()
+            return r.is_published
         except ValueError:
             pass
 
         return False
 
     def subscribe_mqtt(self, topic, callback):
-        _LOGGER.info("SengledApi: Subscribe to an  MQTT Topic")
-        """
-        Subscribe to an MQTT topic.
-        topic -- topic to subscribe to
-        callback -- callback to call when a message comes in
-        """
+        _LOGGER.info("SengledApi: Subscribe to an MQTT Topic")
         if SESSION.mqtt_client is None:
             return False
 
@@ -369,10 +354,5 @@ class SengledApi:
 
     def unsubscribe_mqtt(self, topic, callback):
         _LOGGER.info("SengledApi: Unsubscribe from an MQTT topic")
-        """
-        Unsubscribe from an MQTT topic.
-        topic -- topic to unsubscribe from
-        callback -- callback from previous subscription
-        """
         if topic in SESSION.subscribe:
             del SESSION.subscribe[topic]

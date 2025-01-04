@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-"""Platform for light Sengled hintegration."""
+"""Platform for light Sengled integration."""
 
 import logging
 from datetime import timedelta
@@ -11,11 +11,8 @@ from homeassistant.components.light import (
     ATTR_COLOR_TEMP,
     ATTR_HS_COLOR,
     PLATFORM_SCHEMA,
-    SUPPORT_BRIGHTNESS,
-    SUPPORT_COLOR_TEMP,
-    SUPPORT_COLOR,
-    LightEntity,
     ColorMode,
+    LightEntity,
 )
 from homeassistant.const import ATTR_ATTRIBUTION
 from homeassistant.util import color as colorutil
@@ -33,7 +30,7 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_platform(hass, config, add_entities, discovery_info=None):
     """Set up the Sengled Light platform."""
-    _LOGGER.debug("""Creating new Sengled light component""")
+    _LOGGER.debug("Creating new Sengled light component")
     # Add devices
     add_entities(
         [
@@ -55,7 +52,7 @@ class SengledBulb(LightEntity):
         self._name = light._friendly_name
         self._state = light._state
         self._brightness = light._brightness
-        self._avaliable = light._avaliable
+        self._available = light._available
         self._device_mac = light._device_mac
         self._device_model = light._device_model
         self._color_temperature = light._color_temperature
@@ -83,42 +80,28 @@ class SengledBulb(LightEntity):
 
     @property
     def available(self):
-        """Return the connection status of this light"""
-        _LOGGER.debug("Light.py _avaliable %s", self._avaliable)
-        return self._avaliable
+        """Return the connection status of this light."""
+        _LOGGER.debug("Light.py _available %s", self._available)
+        return self._available
 
     @property
     def extra_state_attributes(self):
         """Return device attributes of the entity."""
-        if self._device_model == "E13-N11":
-            return {
-                ATTR_ATTRIBUTION: ATTRIBUTION,
-                "state": self._state,
-                "available": self._avaliable,
-                "device model": self._device_model,
-                "rssi": self._device_rssi,
-                "mac": self._device_mac,
-                "alarm status ": self._alarm_status,
-                "color": self._color,
-                "color Temp": self._color_temperature,
-                "color r": self._rgb_color_r,
-                "color g": self._rgb_color_g,
-                "color b": self._rgb_color_b,
-            }
-        else:
-            return {
-                ATTR_ATTRIBUTION: ATTRIBUTION,
-                "state": self._state,
-                "available": self._avaliable,
-                "device model": self._device_model,
-                "rssi": self._device_rssi,
-                "mac": self._device_mac,
-                "color": self._color,
-                "color Temp": self._color_temperature,
-                "color r": self._rgb_color_r,
-                "color g": self._rgb_color_g,
-                "color b": self._rgb_color_b,
-            }
+        attributes = {
+            ATTR_ATTRIBUTION: ATTRIBUTION,
+            "state": self._state,
+            "available": self._available,
+            "device model": self._device_model,
+            "rssi": self._device_rssi,
+            "mac": self._device_mac,
+            "alarm status ": self._alarm_status,
+            "color": self._color,
+            "color Temp": self._color_temperature,
+            "color r": self._rgb_color_r,
+            "color g": self._rgb_color_g,
+            "color b": self._rgb_color_b,
+        }
+        return attributes
 
     @property
     def color_temp(self):
@@ -154,38 +137,31 @@ class SengledBulb(LightEntity):
         return self._state
 
     @property
-    def supported_features(self):
-        """Flags Supported Features"""
-        features = 0
+    def supported_color_modes(self):
+        """Return the supported color modes for the light."""
+        color_modes = set()
         if self._support_brightness:
-            features = SUPPORT_BRIGHTNESS
+            color_modes.add(ColorMode.BRIGHTNESS)
         if self._support_color_temp:
-            features = features | SUPPORT_COLOR_TEMP
+            color_modes.add(ColorMode.COLOR_TEMP)
         if self._support_color:
-            features = features | SUPPORT_COLOR
-        _LOGGER.debug("supported_features: %s", features)
-        return features
+            color_modes.add(ColorMode.HS)
+        return color_modes
 
     @property
-    def supported_color_modes(self):
-        """Flags Supported Features"""
-        features = set()
-        if self._support_brightness:
-            features.add(ColorMode.BRIGHTNESS)
-        if self._support_color_temp:
-            features.add(ColorMode.COLOR_TEMP)
+    def color_mode(self):
+        """Return the current color mode of the light."""
         if self._support_color:
-            features.add(ColorMode.HS)
-        _LOGGER.debug("supported_color_modes: %s", features)
-        return features
+            return ColorMode.HS
+        elif self._support_color_temp:
+            return ColorMode.COLOR_TEMP
+        else:
+            return ColorMode.BRIGHTNESS
 
     async def async_turn_on(self, **kwargs):
-        _LOGGER.debug("turn_on kwargs: %s", kwargs)
         """Turn on or control the light."""
-        if (
-            ATTR_BRIGHTNESS not in kwargs
-            and ATTR_HS_COLOR not in kwargs
-            and ATTR_COLOR_TEMP not in kwargs
+        if not any(
+            key in kwargs for key in (ATTR_BRIGHTNESS, ATTR_HS_COLOR, ATTR_COLOR_TEMP)
         ):
             await self._light.async_toggle(ON)
         if ATTR_BRIGHTNESS in kwargs:
@@ -210,7 +186,7 @@ class SengledBulb(LightEntity):
         """
         await self._light.async_update()
         self._state = self._light.is_on()
-        self._avaliable = self._light._avaliable
+        self._available = self._light._available
         self._state = self._light._state
         self._brightness = self._light._brightness
         self._color_temperature = self._light._color_temperature
