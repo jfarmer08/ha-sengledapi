@@ -10,6 +10,8 @@ from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_COLOR_TEMP_KELVIN,
     ATTR_HS_COLOR,
+    DEFAULT_MAX_KELVIN,
+    DEFAULT_MIN_KELVIN,
     PLATFORM_SCHEMA,
     ColorMode,
     LightEntity,
@@ -108,13 +110,23 @@ class SengledBulb(LightEntity):
         return attributes
 
     @property
-    def color_temp(self):
-        """Return the color_temp of the light."""
-        _LOGGER.debug("Light.py color_temp %s", self._color_temperature)
+    def color_temp_kelvin(self):
+        """Return the color temperature in Kelvin."""
+        _LOGGER.debug("Light.py color_temp_kelvin %s", self._color_temperature)
         if self._color_temperature is None:
-            return colorutil.color_temperature_kelvin_to_mired(2000)
+            return 2000
         else:
-            return colorutil.color_temperature_kelvin_to_mired(self._color_temperature)
+            return self._color_temperature
+    
+    @property
+    def min_color_temp_kelvin(self):
+        """Return the minimum color temperature in Kelvin."""
+        return DEFAULT_MIN_KELVIN
+    
+    @property
+    def max_color_temp_kelvin(self):
+        """Return the maximum color temperature in Kelvin."""
+        return DEFAULT_MAX_KELVIN
 
     @property
     def hs_color(self):
@@ -143,21 +155,15 @@ class SengledBulb(LightEntity):
     @property
     def supported_color_modes(self):
         """Return the supported color modes for the light."""
-        color_modes = set()
-        
-        # Add all supported modes
+        # A light entity can only support one primary color mode.
+        # The priorities should be: HS > COLOR_TEMP > BRIGHTNESS > ONOFF
         if self._support_color:
-            color_modes.add(ColorMode.HS)
-        if self._support_color_temp:
-            color_modes.add(ColorMode.COLOR_TEMP)
-        if self._support_brightness:
-            color_modes.add(ColorMode.BRIGHTNESS)
-            
-        # If no specific modes are supported, add ONOFF mode
-        if not color_modes:
-            color_modes.add(ColorMode.ONOFF)
-            
-        return color_modes
+            return {ColorMode.HS}
+        elif self._support_color_temp:
+            return {ColorMode.COLOR_TEMP}
+        elif self._support_brightness:
+            return {ColorMode.BRIGHTNESS}
+        return {ColorMode.ONOFF}
 
     @property
     def color_mode(self):
