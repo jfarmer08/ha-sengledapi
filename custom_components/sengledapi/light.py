@@ -66,6 +66,10 @@ class SengledBulb(LightEntity):
         self._support_color = light._support_color
         self._support_color_temp = light._support_color_temp
         self._support_brightness = light._support_brightness
+        
+        # Ensure default brightness exists for brightness-capable bulbs
+        if self._support_brightness and self._brightness is None:
+            self._brightness = 255
 
     @property
     def name(self):
@@ -140,23 +144,34 @@ class SengledBulb(LightEntity):
     def supported_color_modes(self):
         """Return the supported color modes for the light."""
         color_modes = set()
-        if self._support_brightness:
-            color_modes.add(ColorMode.BRIGHTNESS)
-        if self._support_color_temp:
-            color_modes.add(ColorMode.COLOR_TEMP)
+        
+        # Add all supported modes
         if self._support_color:
             color_modes.add(ColorMode.HS)
+        if self._support_color_temp:
+            color_modes.add(ColorMode.COLOR_TEMP)
+        if self._support_brightness:
+            color_modes.add(ColorMode.BRIGHTNESS)
+            
+        # If no specific modes are supported, add ONOFF mode
+        if not color_modes:
+            color_modes.add(ColorMode.ONOFF)
+            
         return color_modes
 
     @property
     def color_mode(self):
         """Return the current color mode of the light."""
-        if self._support_color:
+        # Return the appropriate color mode based on what's currently active
+        # Priority: Color > Color Temperature > Brightness > On/Off
+        if self._support_color and (self._rgb_color_r is not None or self._color is not None):
             return ColorMode.HS
-        elif self._support_color_temp:
+        elif self._support_color_temp and self._color_temperature is not None:
             return ColorMode.COLOR_TEMP
-        else:
+        elif self._support_brightness and self._brightness is not None:
             return ColorMode.BRIGHTNESS
+        else:
+            return ColorMode.ONOFF
 
     async def async_turn_on(self, **kwargs):
         """Turn on or control the light."""
