@@ -282,10 +282,25 @@ class SengledApi:
             if msg.topic in SESSION.subscribe:
                 SESSION.subscribe[msg.topic](msg.payload)
 
+        import concurrent.futures
+        import functools
+        import ssl
+
+        # Create SSL context in a separate thread to avoid blocking
+        def create_ssl_context():
+            context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+            context.load_default_certs(ssl.Purpose.SERVER_AUTH)
+            return context
+
         SESSION.mqtt_client = mqtt.Client(
             client_id="{}@lifeApp".format(SESSION.jsession_id), transport="websockets"
         )
-        SESSION.mqtt_client.tls_set_context()
+        
+        # Run the blocking operation in a separate thread
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            ssl_context = executor.submit(create_ssl_context).result()
+            SESSION.mqtt_client.tls_set_context(ssl_context)
+            
         SESSION.mqtt_client.ws_set_options(
             path=SESSION.mqtt_server["path"],
             headers={
