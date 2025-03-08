@@ -8,7 +8,7 @@ from datetime import timedelta
 # Import the device class from the component that you want to support
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
-    ATTR_COLOR_TEMP,
+    ATTR_COLOR_TEMP_KELVIN,
     ATTR_HS_COLOR,
     PLATFORM_SCHEMA,
     ColorMode,
@@ -176,7 +176,7 @@ class SengledBulb(LightEntity):
     async def async_turn_on(self, **kwargs):
         """Turn on or control the light."""
         if not any(
-            key in kwargs for key in (ATTR_BRIGHTNESS, ATTR_HS_COLOR, ATTR_COLOR_TEMP)
+            key in kwargs for key in (ATTR_BRIGHTNESS, ATTR_HS_COLOR, ATTR_COLOR_TEMP_KELVIN)
         ):
             await self._light.async_toggle(ON)
         if ATTR_BRIGHTNESS in kwargs:
@@ -185,10 +185,8 @@ class SengledBulb(LightEntity):
             hs = kwargs.get(ATTR_HS_COLOR)
             color = colorutil.color_hs_to_RGB(hs[0], hs[1])
             await self._light.async_set_color(color)
-        if ATTR_COLOR_TEMP in kwargs:
-            color_temp = colorutil.color_temperature_mired_to_kelvin(
-                kwargs[ATTR_COLOR_TEMP]
-            )
+        if ATTR_COLOR_TEMP_KELVIN in kwargs:
+            color_temp = kwargs[ATTR_COLOR_TEMP_KELVIN]
             await self._light.async_color_temperature(color_temp)
 
     async def async_turn_off(self, **kwargs):
