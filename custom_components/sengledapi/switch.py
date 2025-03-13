@@ -35,7 +35,7 @@ class SengledSwitch(SwitchDevice):
         self._switch = switch
         self._name = switch._friendly_name
         self._state = switch._state
-        self._avaliable = True
+        self._available = True
         self._device_mac = switch._device_mac
         self._device_model = switch._device_model
 
@@ -47,7 +47,7 @@ class SengledSwitch(SwitchDevice):
     @property
     def available(self):
         """Return the connection status of this switch"""
-        return self._avaliable
+        return self._available
 
     @property
     def is_on(self):
@@ -64,7 +64,7 @@ class SengledSwitch(SwitchDevice):
         return {
             ATTR_ATTRIBUTION: ATTRIBUTION,
             "state": self._state,
-            "available": self._avaliable,
+            "available": self._available,
             "device model": self._device_model,
             "mac": self._device_mac,
         }

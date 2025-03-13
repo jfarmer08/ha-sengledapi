@@ -1,17 +1,13 @@
 #!/usr/bin/python3
 """Sengled Bulb Integration."""
-import json
 import logging
-import time
 from urllib.parse import urlparse
 from uuid import uuid4
 
 import paho.mqtt.client as mqtt
-import requests
 
 from .devices.bulbs.bulb import Bulb
 from .devices.bulbs.bulbproperty import BulbProperty
-from .devices.exceptions import SengledApiAccessToken
 from .devices.request import Request
 from .devices.switch import Switch
 
@@ -88,9 +84,9 @@ class SengledApi:
             await self.async_get_server_info()
 
             if not SESSION.mqtt_client:
-                self.initialize_mqtt()
+                await self.async_initialize_mqtt()
             else:
-                self.reinitialize_mqtt()
+                await self.async_reinitialize_mqtt()
 
         return True
 
@@ -303,6 +299,49 @@ class SengledApi:
         _LOGGER.info("SengledApi: Start mqtt loop")
         return True
 
+    async def async_initialize_mqtt(self):
+        """Asynchronously initialize the MQTT connection."""
+        _LOGGER.info("SengledApi: Initialize the MQTT connection")
+        if not SESSION.jsession_id:
+            return False
+
+        def on_message(api, userdata, msg):
+            if msg.topic in SESSION.subscribe:
+                SESSION.subscribe[msg.topic](msg.payload)
+
+        SESSION.mqtt_client = mqtt.Client(
+            client_id="{}@lifeApp".format(SESSION.jsession_id), transport="websockets"
+        )
+
+        # Run the blocking call in a thread pool
+        import asyncio
+
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, lambda: SESSION.mqtt_client.tls_set_context())
+
+        SESSION.mqtt_client.ws_set_options(
+            path=SESSION.mqtt_server["path"],
+            headers={
+                "Cookie": "JSESSIONID={}".format(SESSION.jsession_id),
+                "X-Requested-With": "com.sengled.life2",
+            },
+        )
+
+        # Also run the blocking connect in a thread pool
+        await loop.run_in_executor(
+            None,
+            lambda: SESSION.mqtt_client.connect(
+                SESSION.mqtt_server["host"],
+                port=SESSION.mqtt_server["port"],
+                keepalive=30,
+            ),
+        )
+
+        SESSION.mqtt_client.on_message = on_message
+        SESSION.mqtt_client.loop_start()
+        _LOGGER.info("SengledApi: Start mqtt loop")
+        return True
+
     def reinitialize_mqtt(self):
         _LOGGER.info("SengledApi: Re-initialize the MQTT connection")
         if SESSION.mqtt_client is None or not SESSION.jsession_id:
@@ -317,6 +356,34 @@ class SengledApi:
             },
         )
         SESSION.mqtt_client.reconnect()
+        SESSION.mqtt_client.loop_start()
+
+        for topic in SESSION.subscribe:
+            self.subscribe_mqtt(topic, SESSION.subscribe[topic])
+
+        return True
+
+    async def async_reinitialize_mqtt(self):
+        """Asynchronously re-initialize the MQTT connection."""
+        _LOGGER.info("SengledApi: Re-initialize the MQTT connection")
+        if SESSION.mqtt_client is None or not SESSION.jsession_id:
+            return False
+
+        SESSION.mqtt_client.loop_stop()
+        SESSION.mqtt_client.disconnect()
+        SESSION.mqtt_client.ws_set_options(
+            path=SESSION.mqtt_server["path"],
+            headers={
+                "Cookie": "JSESSIONID={}".format(SESSION.jsession_id),
+            },
+        )
+
+        # Run the blocking reconnect in a thread pool
+        import asyncio
+
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, lambda: SESSION.mqtt_client.reconnect())
+
         SESSION.mqtt_client.loop_start()
 
         for topic in SESSION.subscribe:

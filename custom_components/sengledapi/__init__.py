@@ -4,8 +4,7 @@ import logging
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-from homeassistant.const import (CONF_DEVICES, CONF_PASSWORD, CONF_TIMEOUT,
-                                 CONF_USERNAME)
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import discovery
 
 from .const import CONF_COUNTRY, CONF_TYPE, DOMAIN
@@ -119,10 +118,10 @@ async def async_setup_entry(hass, entry):
     _LOGGER.debug("SengledApi Start up lights, switch and binary sensor components")
     # Start up lights and switch components
     if sengledapi_devices:
-        await discovery.async_load_platform(hass, "light", DOMAIN, {}, config)
+        await discovery.async_load_platform(hass, "light", DOMAIN, {}, entry.data)
     else:
         _LOGGER.error(
             "SengledApi: SengledApi authenticated but could not find any devices."
         )
 
-    return False
+    return True
