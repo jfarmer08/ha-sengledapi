@@ -8,8 +8,10 @@ from datetime import timedelta
 # Import the device class from the component that you want to support
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
-    ATTR_COLOR_TEMP,
+    ATTR_COLOR_TEMP_KELVIN,
     ATTR_HS_COLOR,
+    DEFAULT_MAX_KELVIN,
+    DEFAULT_MIN_KELVIN,
     PLATFORM_SCHEMA,
     ColorMode,
     LightEntity,
@@ -66,6 +68,10 @@ class SengledBulb(LightEntity):
         self._support_color = light._support_color
         self._support_color_temp = light._support_color_temp
         self._support_brightness = light._support_brightness
+        
+        # Ensure default brightness exists for brightness-capable bulbs
+        if self._support_brightness and self._brightness is None:
+            self._brightness = 255
 
     @property
     def name(self):
@@ -104,13 +110,23 @@ class SengledBulb(LightEntity):
         return attributes
 
     @property
-    def color_temp(self):
-        """Return the color_temp of the light."""
-        _LOGGER.debug("Light.py color_temp %s", self._color_temperature)
+    def color_temp_kelvin(self):
+        """Return the color temperature in Kelvin."""
+        _LOGGER.debug("Light.py color_temp_kelvin %s", self._color_temperature)
         if self._color_temperature is None:
-            return colorutil.color_temperature_kelvin_to_mired(2000)
+            return 2000
         else:
-            return colorutil.color_temperature_kelvin_to_mired(self._color_temperature)
+            return self._color_temperature
+    
+    @property
+    def min_color_temp_kelvin(self):
+        """Return the minimum color temperature in Kelvin."""
+        return DEFAULT_MIN_KELVIN
+    
+    @property
+    def max_color_temp_kelvin(self):
+        """Return the maximum color temperature in Kelvin."""
+        return DEFAULT_MAX_KELVIN
 
     @property
     def hs_color(self):
@@ -139,29 +155,34 @@ class SengledBulb(LightEntity):
     @property
     def supported_color_modes(self):
         """Return the supported color modes for the light."""
-        color_modes = set()
-        if self._support_brightness:
-            color_modes.add(ColorMode.BRIGHTNESS)
-        if self._support_color_temp:
-            color_modes.add(ColorMode.COLOR_TEMP)
+        # A light entity can only support one primary color mode.
+        # The priorities should be: HS > COLOR_TEMP > BRIGHTNESS > ONOFF
         if self._support_color:
-            color_modes.add(ColorMode.HS)
-        return color_modes
+            return {ColorMode.HS}
+        elif self._support_color_temp:
+            return {ColorMode.COLOR_TEMP}
+        elif self._support_brightness:
+            return {ColorMode.BRIGHTNESS}
+        return {ColorMode.ONOFF}
 
     @property
     def color_mode(self):
         """Return the current color mode of the light."""
-        if self._support_color:
+        # Return the appropriate color mode based on what's currently active
+        # Priority: Color > Color Temperature > Brightness > On/Off
+        if self._support_color and (self._rgb_color_r is not None or self._color is not None):
             return ColorMode.HS
-        elif self._support_color_temp:
+        elif self._support_color_temp and self._color_temperature is not None:
             return ColorMode.COLOR_TEMP
-        else:
+        elif self._support_brightness and self._brightness is not None:
             return ColorMode.BRIGHTNESS
+        else:
+            return ColorMode.ONOFF
 
     async def async_turn_on(self, **kwargs):
         """Turn on or control the light."""
         if not any(
-            key in kwargs for key in (ATTR_BRIGHTNESS, ATTR_HS_COLOR, ATTR_COLOR_TEMP)
+            key in kwargs for key in (ATTR_BRIGHTNESS, ATTR_HS_COLOR, ATTR_COLOR_TEMP_KELVIN)
         ):
             await self._light.async_toggle(ON)
         if ATTR_BRIGHTNESS in kwargs:
@@ -170,10 +191,8 @@ class SengledBulb(LightEntity):
             hs = kwargs.get(ATTR_HS_COLOR)
             color = colorutil.color_hs_to_RGB(hs[0], hs[1])
             await self._light.async_set_color(color)
-        if ATTR_COLOR_TEMP in kwargs:
-            color_temp = colorutil.color_temperature_mired_to_kelvin(
-                kwargs[ATTR_COLOR_TEMP]
-            )
+        if ATTR_COLOR_TEMP_KELVIN in kwargs:
+            color_temp = kwargs[ATTR_COLOR_TEMP_KELVIN]
             await self._light.async_color_temperature(color_temp)
 
     async def async_turn_off(self, **kwargs):
